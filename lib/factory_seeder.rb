@@ -26,6 +26,10 @@ module FactorySeeder
     end
 
     def scan_factories
+      # Ensure Rails integration is properly set up
+      FactorySeeder::RailsIntegration.setup
+      FactorySeeder::RailsIntegration.load_models
+
       scanner = FactoryScanner.new
       scanner.scan
     end
@@ -37,14 +41,25 @@ module FactorySeeder
 
     # Nouvelle méthode pour scanner les factories déjà chargées
     def scan_loaded_factories
+      # Ensure Rails integration is properly set up
+      FactorySeeder::RailsIntegration.setup
+      FactorySeeder::RailsIntegration.load_models
+
       factories = {}
 
       FactoryBot.factories.each do |factory|
         factory_name = factory.name.to_s
         begin
-          # Éviter de charger le modèle en utilisant factory.klass ou factory.build_class
-          # Utiliser factory.name pour déduire le nom de la classe
+          # Use a safer approach to get class name without building the class
           class_name = factory_name.classify
+
+          # Try to get the actual class name if possible, but don't fail if it doesn't work
+          begin
+            class_name = factory.build_class.name if factory.respond_to?(:build_class) && factory.build_class
+          rescue NameError, StandardError => e
+            # If we can't get the actual class name, use the inferred one
+            puts "⚠️  Using inferred class name for '#{factory_name}': #{e.message}" if configuration.verbose
+          end
 
           factories[factory_name] = {
             name: factory_name,

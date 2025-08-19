@@ -46,6 +46,9 @@ module FactorySeeder
           # Store the file to retry later
           @retry_files ||= []
           @retry_files << file
+        rescue StandardError => e
+          # Handle other errors that might occur during factory loading
+          puts "⚠️  Error loading factory file #{file}: #{e.message}" if FactorySeeder.configuration.verbose
         end
       end
 
@@ -57,6 +60,9 @@ module FactorySeeder
       return unless @retry_files&.any?
 
       puts '🔄 Retrying to load factories that failed...' if FactorySeeder.configuration.verbose
+
+      # Try to load models again before retrying factories
+      FactorySeeder::RailsIntegration.load_models
 
       @retry_files.each do |file|
         load file
@@ -72,7 +78,19 @@ module FactorySeeder
       FactoryBot.factories.each do |factory|
         factory_name = factory.name.to_s
         begin
-          class_name = factory.build_class.name
+          # Use a safer approach to get class name without building the class
+          class_name = factory_name.classify
+
+          # Try to get the actual class name if possible, but don't fail if it doesn't work
+          begin
+            class_name = factory.build_class.name if factory.respond_to?(:build_class) && factory.build_class
+          rescue NameError, StandardError => e
+            # If we can't get the actual class name, use the inferred one
+            if FactorySeeder.configuration.verbose
+              puts "⚠️  Using inferred class name for '#{factory_name}': #{e.message}"
+            end
+          end
+
           @factories[factory_name] = {
             name: factory_name,
             class_name: class_name,

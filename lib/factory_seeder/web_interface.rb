@@ -30,12 +30,20 @@ module FactorySeeder
     post '/generate' do
       content_type :json
 
-      factory_name = params[:factory]
-      count = params[:count].to_i
-      traits = params[:traits]
+      # Parse JSON body if present
+      if request.content_type == 'application/json'
+        data = JSON.parse(request.body.read)
+        factory_name = data['factory']
+        count = data['count'].to_i
+        traits = data['traits']
+      else
+        factory_name = params[:factory]
+        count = params[:count].to_i
+        traits = params[:traits]
+      end
 
       # Parse traits if it's a string
-      traits = if traits.is_a?(String)
+      traits = if traits.is_a?(String) && !traits.empty?
                  traits.split(',').map(&:strip)
                elsif traits.is_a?(Array)
                  traits.flatten.map(&:strip)
@@ -45,12 +53,13 @@ module FactorySeeder
 
       begin
         generator = SeedGenerator.new
-        generator.create(factory_name, {
-                           count: count,
-                           traits: traits
-                         })
+        result = generator.generate(factory_name, count, traits)
 
-        { success: true, message: "Created #{count} #{factory_name} records" }.to_json
+        if result[:errors].any?
+          { success: false, error: result[:errors].join(', ') }.to_json
+        else
+          { success: true, message: "Created #{result[:count]} #{factory_name} records" }.to_json
+        end
       rescue StandardError => e
         { success: false, error: e.message }.to_json
       end
