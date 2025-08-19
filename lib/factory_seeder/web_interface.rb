@@ -36,10 +36,12 @@ module FactorySeeder
         factory_name = data['factory']
         count = data['count'].to_i
         traits = data['traits']
+        attributes = data['attributes'] || {}
       else
         factory_name = params[:factory]
         count = params[:count].to_i
         traits = params[:traits]
+        attributes = params[:attributes] || {}
       end
 
       # Parse traits if it's a string
@@ -53,7 +55,7 @@ module FactorySeeder
 
       begin
         generator = SeedGenerator.new
-        result = generator.generate(factory_name, count, traits)
+        result = generator.generate(factory_name, count, traits, attributes)
 
         if result[:errors].any?
           { success: false, error: result[:errors].join(', ') }.to_json
@@ -75,6 +77,7 @@ module FactorySeeder
 
       factory_name = params[:name]
       traits = params[:traits]
+      attributes = params[:attributes] || {}
 
       # Parse traits if it's a string
       traits = if traits.is_a?(String)
@@ -85,8 +88,17 @@ module FactorySeeder
                  []
                end
 
+      # Parse attributes if it's a string
+      if attributes.is_a?(String) && !attributes.empty?
+        begin
+          attributes = JSON.parse(attributes)
+        rescue JSON::ParserError
+          attributes = {}
+        end
+      end
+
       begin
-        sample = FactoryBot.build(factory_name, *traits)
+        sample = FactoryBot.build(factory_name, *traits, attributes)
 
         {
           success: true,

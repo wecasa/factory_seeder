@@ -207,6 +207,49 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        
+        .attributes-section {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f9f9f9;
+            margin-top: 10px;
+        }
+        
+        .attribute-item {
+            margin-bottom: 12px;
+        }
+        
+        .attribute-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .attribute-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .attribute-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .attribute-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        
+        .attribute-input::placeholder {
+            color: #999;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -262,6 +305,26 @@
                         </div>
                     <% end %>
                     
+                    <% if @factory[:attributes].any? %>
+                        <div class="form-group">
+                            <label class="form-label">Custom Attributes (optional):</label>
+                            <div class="attributes-section">
+                                <% @factory[:attributes].each do |attr| %>
+                                    <div class="attribute-item">
+                                        <label for="attr_<%= attr[:name] %>" class="attribute-label">
+                                            <%= attr[:name] %> (<%= attr[:type] %>):
+                                        </label>
+                                        <input type="text" 
+                                               id="attr_<%= attr[:name] %>" 
+                                               name="attributes[<%= attr[:name] %>]" 
+                                               class="form-input attribute-input"
+                                               placeholder="Leave empty to use factory default">
+                                    </div>
+                                <% end %>
+                            </div>
+                        </div>
+                    <% end %>
+                    
                     <button type="submit" class="btn btn-primary">Generate Seeds</button>
                     <button type="button" class="btn btn-secondary" onclick="previewData()">Preview Data</button>
                 </form>
@@ -287,10 +350,22 @@
             const formData = new FormData(this);
             const traits = Array.from(formData.getAll('traits')).join(',');
             
+            // Collect custom attributes
+            const attributes = {};
+            const attributeInputs = document.querySelectorAll('input[name^="attributes["]');
+            attributeInputs.forEach(input => {
+                const attrName = input.name.match(/attributes\[([^\]]+)\]/)[1];
+                const value = input.value.trim();
+                if (value !== '') {
+                    attributes[attrName] = value;
+                }
+            });
+            
             const data = {
                 factory: '<%= @factory_name %>',
                 count: formData.get('count'),
-                traits: traits
+                traits: traits,
+                attributes: attributes
             };
             
             // Show loading
@@ -331,7 +406,24 @@
             const formData = new FormData(document.getElementById('generateForm'));
             const traits = Array.from(formData.getAll('traits')).join(',');
             
-            fetch(`/api/factory/<%= @factory_name %>/preview?traits=${traits}`)
+            // Collect custom attributes
+            const attributes = {};
+            const attributeInputs = document.querySelectorAll('input[name^="attributes["]');
+            attributeInputs.forEach(input => {
+                const attrName = input.name.match(/attributes\[([^\]]+)\]/)[1];
+                const value = input.value.trim();
+                if (value !== '') {
+                    attributes[attrName] = value;
+                }
+            });
+            
+            const params = new URLSearchParams();
+            if (traits) params.append('traits', traits);
+            if (Object.keys(attributes).length > 0) {
+                params.append('attributes', JSON.stringify(attributes));
+            }
+            
+            fetch(`/api/factory/<%= @factory_name %>/preview?${params.toString()}`)
                 .then(response => response.json())
                 .then(data => {
                     const previewSection = document.getElementById('previewSection');
