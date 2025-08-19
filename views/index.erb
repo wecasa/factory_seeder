@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FactorySeeder - Database Seeding Made Easy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .factories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .factory-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .factory-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .factory-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        
+        .factory-class {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        
+        .factory-traits {
+            margin-bottom: 10px;
+        }
+        
+        .factory-traits strong {
+            color: #495057;
+        }
+        
+        .trait-tag {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin: 2px;
+        }
+        
+        .factory-actions {
+            margin-top: 15px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 8px;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏭 FactorySeeder</h1>
+            <p>Database seeding made easy with FactoryBot</p>
+        </div>
+        
+        <div class="content">
+            <% if @factories.empty? %>
+                <div class="empty-state">
+                    <h3>No factories found</h3>
+                    <p>Make sure you have FactoryBot factories in your project.</p>
+                    <p>Common locations: <code>spec/factories/</code> or <code>test/factories/</code></p>
+                </div>
+            <% else %>
+                <h2>Available Factories (<%= @factories.count %>)</h2>
+                <div class="factories-grid">
+                    <% @factories.each do |name, info| %>
+                        <div class="factory-card">
+                            <div class="factory-name"><%= name %></div>
+                            <div class="factory-class"><%= info[:class_name] %></div>
+                            
+                            <% if info[:traits].any? %>
+                                <div class="factory-traits">
+                                    <strong>Traits:</strong><br>
+                                    <% info[:traits].each do |trait| %>
+                                        <span class="trait-tag"><%= trait %></span>
+                                    <% end %>
+                                </div>
+                            <% end %>
+                            
+                            <% if info[:associations].any? %>
+                                <div class="factory-associations">
+                                    <strong>Associations:</strong> <%= info[:associations].map { |a| a[:name] }.join(', ') %>
+                                </div>
+                            <% end %>
+                            
+                            <div class="factory-actions">
+                                <a href="/factory/<%= name %>" class="btn btn-primary">Generate Seeds</a>
+                                <button class="btn btn-secondary" onclick="previewFactory('<%= name %>')">Preview</button>
+                            </div>
+                        </div>
+                    <% end %>
+                </div>
+            <% end %>
+        </div>
+    </div>
+    
+    <script>
+        function previewFactory(factoryName) {
+            fetch(`/api/factory/${factoryName}/preview`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Preview:\n' + JSON.stringify(data.attributes, null, 2));
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+        }
+    </script>
+</body>
+</html>

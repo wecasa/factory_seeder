@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Essayer de charger l'environnement Rails s'il existe
+begin
+  # Chercher le fichier config/environment.rb dans le répertoire courant ou parent
+  current_dir = Dir.pwd
+  rails_env_found = false
+
+  # Chercher dans le répertoire courant et ses parents
+  while current_dir != '/' && !rails_env_found
+    if File.exist?(File.join(current_dir, 'config', 'environment.rb'))
+      require File.join(current_dir, 'config', 'environment')
+      rails_env_found = true
+      puts "🌱 Rails environment chargé depuis: #{current_dir}" if ENV['FACTORY_SEEDER_DEBUG']
+    else
+      current_dir = File.dirname(current_dir)
+    end
+  end
+rescue LoadError => e
+  puts "⚠️  Rails environment non trouvé: #{e.message}" if ENV['FACTORY_SEEDER_DEBUG']
+end
+
+require 'bundler/setup'
+require 'factory_seeder'
+
+FactorySeeder::CLI.start(ARGV)
