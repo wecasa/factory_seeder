@@ -1,0 +1,16 @@
+/* Factory Seeder Styles */
+body {
+    font-family: Arial, sans-serif;
+  }
+  
+  .navbar {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }

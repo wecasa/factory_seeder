@@ -14,6 +14,7 @@ require_relative 'factory_seeder/seed_generator'
 require_relative 'factory_seeder/cli'
 require_relative 'factory_seeder/web_interface'
 require_relative 'factory_seeder/rails_integration'
+require 'factory_seeder/engine'
 
 module FactorySeeder
   class << self
