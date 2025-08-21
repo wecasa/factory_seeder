@@ -1,8 +1,7 @@
 module FactorySeeder
   class DashboardController < ApplicationController
     def index
-      # Tu peux ajouter de la logique ici plus tard
-      # Par exemple récupérer des stats, des factories disponibles, etc.
+      @factories = FactorySeeder.scan_loaded_factories
     end
   end
 end

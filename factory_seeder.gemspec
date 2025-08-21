@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.metadata['source_code_uri'] = spec.homepage
   spec.metadata['changelog_uri'] = "#{spec.homepage}/blob/main/CHANGELOG.md"
 
-  spec.files = Dir.glob('{bin,lib,templates}/**/*') + %w[README.md LICENSE.txt]
+  spec.files = Dir.glob('{bin,lib,templates,app,config}/**/*') + %w[README.md LICENSE.txt CHANGELOG.md]
   spec.bindir = 'bin'
   spec.executables = ['factory_seeder']
   spec.require_paths = ['lib']

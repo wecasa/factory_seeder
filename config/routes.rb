@@ -1,8 +1,14 @@
+# frozen_string_literal: true
+
 FactorySeeder::Engine.routes.draw do
-  # Exemple de routes pour ta gem
+  # Dashboard principal
   root 'dashboard#index'
-  
-  # Ajoute tes routes spécifiques ici
-  # resources :seeders
-  # resources :factories
+
+  # Factory details et génération
+  get '/factory/:name', to: 'factory#show', as: :factory
+  post '/generate', to: 'factory#generate', as: :generate
+
+  # API endpoints
+  get '/api/factories', to: 'api#factories', as: :api_factories
+  get '/api/factory/:name/preview', to: 'api#factory_preview', as: :api_factory_preview
 end

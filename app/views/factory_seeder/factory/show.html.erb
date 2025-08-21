@@ -1,0 +1,155 @@
+<div class="container">
+    <div class="header">
+        <%= link_to "← Back to Dashboard", root_path, class: "back-link" %>
+        <h1>🏭 <%= @factory_name %></h1>
+    </div>
+    
+    <div class="content">
+        <div class="factory-info">
+            <h3>Factory Information</h3>
+            <div class="info-item">
+                <span class="info-label">Class:</span> <%= @factory[:class_name] %>
+            </div>
+            
+            <% if @factory[:traits].any? %>
+                <div class="info-item">
+                    <span class="info-label">Traits:</span><br>
+                    <% @factory[:traits].each do |trait| %>
+                        <span class="trait-tag"><%= trait %></span>
+                    <% end %>
+                </div>
+            <% end %>
+            
+            <% if @factory[:associations].any? %>
+                <div class="info-item">
+                    <span class="info-label">Associations:</span> <%= @factory[:associations].map { |a| a[:name] }.join(', ') %>
+                </div>
+            <% end %>
+        </div>
+
+        <form id="generateForm">
+            <div class="form-section">
+                <h3>Generation Options</h3>
+                
+                <div class="form-group">
+                    <label for="count">Number of records:</label>
+                    <input type="number" id="count" name="count" value="1" min="1" max="100" class="form-control">
+                </div>
+
+                <% if @factory[:traits].any? %>
+                    <div class="form-group">
+                        <label for="traits">Traits (comma-separated):</label>
+                        <input type="text" id="traits" name="traits" class="form-control" placeholder="e.g., admin, verified">
+                    </div>
+                <% end %>
+            </div>
+
+            <div class="form-section">
+                <h3>Custom Attributes</h3>
+                <p>Override default values for specific attributes:</p>
+                
+                <% @factory[:attributes].each do |attr| %>
+                    <div class="form-group">
+                        <label for="attr_<%= attr[:name] %>"><%= attr[:name] %> (<%= attr[:type] %>):</label>
+                        <input type="text" id="attr_<%= attr[:name] %>" name="attributes[<%= attr[:name] %>]" class="form-control" placeholder="Leave empty to use default">
+                    </div>
+                <% end %>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" onclick="previewFactory()" class="btn btn-secondary">Preview</button>
+                <button type="submit" class="btn btn-primary">Generate Seeds</button>
+            </div>
+        </form>
+
+        <div id="result" class="result"></div>
+        <div id="preview" class="preview"></div>
+    </div>
+</div>
+
+<script>
+    function showResult(message, isSuccess) {
+        const result = document.getElementById('result');
+        result.textContent = message;
+        result.className = 'result ' + (isSuccess ? 'success' : 'error');
+        result.style.display = 'block';
+    }
+
+    function showPreview(data) {
+        const preview = document.getElementById('preview');
+        preview.textContent = JSON.stringify(data, null, 2);
+        preview.style.display = 'block';
+    }
+
+    function collectAttributes() {
+        const attributes = {};
+        const inputs = document.querySelectorAll('input[name^="attributes["]');
+        inputs.forEach(input => {
+            if (input.value.trim()) {
+                const name = input.name.match(/\[(.*?)\]/)[1];
+                attributes[name] = input.value;
+            }
+        });
+        return attributes;
+    }
+
+    function previewFactory() {
+        const count = document.getElementById('count').value;
+        const traits = document.getElementById('traits')?.value || '';
+        const attributes = collectAttributes();
+
+        const params = new URLSearchParams({
+            count: count,
+            traits: traits,
+            attributes: JSON.stringify(attributes)
+        });
+
+        fetch(`<%= api_factory_preview_path(@factory_name) %>?${params}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showPreview(data.preview);
+                    showResult('Preview generated successfully!', true);
+                } else {
+                    showResult('Error: ' + data.error, false);
+                }
+            })
+            .catch(error => {
+                showResult('Error: ' + error.message, false);
+            });
+    }
+
+    document.getElementById('generateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const count = document.getElementById('count').value;
+        const traits = document.getElementById('traits')?.value || '';
+        const attributes = collectAttributes();
+
+        const formData = new FormData();
+        formData.append('factory_name', '<%= @factory_name %>');
+        formData.append('count', count);
+        formData.append('traits', traits);
+        formData.append('attributes', JSON.stringify(attributes));
+
+        fetch('<%= generate_path %>', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('Seeds generated successfully!', true);
+                    showPreview(data.result);
+                } else {
+                    showResult('Error: ' + data.error, false);
+                }
+            })
+            .catch(error => {
+                showResult('Error: ' + error.message, false);
+            });
+    });
+</script>
