@@ -1,0 +1,41 @@
+<div class="container">
+    <div class="content">
+        <% if @factories.empty? %>
+            <div class="empty-state">
+                <h3>No factories found</h3>
+                <p>Make sure you have FactoryBot factories in your project.</p>
+                <p>Common locations: <code>spec/factories/</code> or <code>test/factories/</code></p>
+            </div>
+        <% else %>
+            <h2>Available Factories (<%= @factories.count %>)</h2>
+            <div class="factories-grid">
+                <% @factories.each do |name, info| %>
+                    <div class="factory-card">
+                        <div class="factory-name"><%= name %></div>
+                        <div class="factory-class"><%= info[:class_name] %></div>
+                        
+                        <% if info[:traits].any? %>
+                            <div class="factory-traits">
+                                <strong>Traits:</strong><br>
+                                <% info[:traits].each do |trait| %>
+                                    <span class="trait-tag"><%= trait %></span>
+                                <% end %>
+                            </div>
+                        <% end %>
+                        
+                        <% if info[:associations].any? %>
+                            <div class="factory-associations">
+                                <strong>Associations:</strong> <%= info[:associations].map { |a| a[:name] }.join(', ') %>
+                            </div>
+                        <% end %>
+                        
+                        <div class="factory-actions">
+                            <%= link_to "Generate Seeds", factory_path(name), class: "btn btn-primary" %>
+                            <%= link_to "Preview", preview_factory_from_dashboard_path(name), class: "btn btn-secondary" %>
+                        </div>
+                    </div>
+                <% end %>
+            </div>
+        <% end %>
+    </div>
+</div>

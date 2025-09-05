@@ -9,8 +9,10 @@ require 'faker'
 
 require_relative 'factory_seeder/version'
 require_relative 'factory_seeder/configuration'
+require_relative 'factory_seeder/asset_helper'
 require_relative 'factory_seeder/factory_scanner'
 require_relative 'factory_seeder/seed_generator'
+require_relative 'factory_seeder/seeder'
 require_relative 'factory_seeder/cli'
 require_relative 'factory_seeder/web_interface'
 require_relative 'factory_seeder/rails_integration'
@@ -38,6 +40,23 @@ module FactorySeeder
     # Méthode simplifiée qui ne liste que les noms des factories
     def list_factory_names
       FactoryBot.factories.map(&:name).map(&:to_s)
+    end
+
+    def seeder
+      @seeder ||= Seeder.new
+    end
+
+    def generate
+      yield(seeder) if block_given?
+      seeder
+    end
+
+    def list_seeds
+      seeder.seeds
+    end
+
+    def run(*names)
+      seeder.run(*names)
     end
 
     # Nouvelle méthode pour scanner les factories déjà chargées

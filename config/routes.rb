@@ -6,9 +6,19 @@ FactorySeeder::Engine.routes.draw do
 
   # Factory details et génération
   get '/factory/:name', to: 'factory#show', as: :factory
-  post '/generate', to: 'factory#generate', as: :generate
+  get '/factory', to: 'factory#index', as: :factory_index
+  post '/factory/:name/generate', to: 'factory#generate', as: :generate_factory
+  get '/factory/:name/preview', to: 'factory#preview', as: :preview_factory
 
-  # API endpoints
-  get '/api/factories', to: 'api#factories', as: :api_factories
-  get '/api/factory/:name/preview', to: 'api#factory_preview', as: :api_factory_preview
+  # Seeds actions
+  post '/seeds/:name', to: 'dashboard#run_seed', as: :run_seed
+  post '/seeds', to: 'dashboard#run_all_seeds', as: :run_all_seeds
+
+  # Custom seeds
+  get '/custom_seeds', to: 'custom_seeds#index', as: :custom_seeds
+  get '/custom_seeds/:name', to: 'custom_seeds#show', as: :custom_seed
+  post '/custom_seeds/:name/generate', to: 'custom_seeds#create', as: :create_custom_seede
+
+  # Factory preview depuis dashboard
+  get '/preview/:name', to: 'dashboard#preview_factory', as: :preview_factory_from_dashboard
 end

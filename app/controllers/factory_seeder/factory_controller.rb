@@ -1,5 +1,10 @@
 module FactorySeeder
   class FactoryController < ApplicationController
+
+    def index
+      @factories = FactorySeeder.scan_loaded_factories
+    end
+
     def show
       @factory_name = params[:name]
       @factories = FactorySeeder.scan_loaded_factories
@@ -12,18 +17,42 @@ module FactorySeeder
     end
 
     def generate
-      factory_name = params[:factory_name]
+      factory_name = params[:name]
       count = (params[:count] || 1).to_i
       traits = parse_traits(params[:traits])
-      attributes = parse_attributes(params[:attributes])
 
       begin
         generator = SeedGenerator.new
-        result = generator.generate(factory_name, count, traits, attributes)
+        result = generator.generate(factory_name, count, traits, generate_params[:attributes].to_h.compact_blank)
 
-        render json: { success: true, result: result }
+        if result[:errors].any?
+          flash[:error] = "Error generating seeds: #{result[:errors].join(', ')}"
+          redirect_to factory_path(factory_name)
+        else
+          flash[:success] = "Successfully generated #{result[:count]} #{factory_name} records!"
+          redirect_to factory_path(factory_name)
+        end
       rescue StandardError => e
-        render json: { success: false, error: e.message }, status: :unprocessable_entity
+        flash[:error] = "Error generating seeds: #{e.message}"
+        redirect_to factory_path(factory_name)
+      end
+    end
+
+    def preview
+      factory_name = params[:name]
+      count = (params[:count] || 1).to_i
+      traits = parse_traits(params[:traits])
+      attributes = generate_params[:attributes]
+
+      begin
+        generator = SeedGenerator.new
+        @preview_data = generator.preview(factory_name, count, traits, attributes)
+        @factory_name = factory_name
+
+        render :preview
+      rescue StandardError => e
+        flash[:error] = "Error previewing factory: #{e.message}"
+        redirect_to factory_path(factory_name)
       end
     end
 
@@ -39,18 +68,8 @@ module FactorySeeder
       end
     end
 
-    def parse_attributes(attributes_param)
-      return {} if attributes_param.blank?
-
-      if attributes_param.is_a?(String)
-        begin
-          JSON.parse(attributes_param)
-        rescue JSON::ParserError
-          {}
-        end
-      else
-        attributes_param
-      end
+    def generate_params
+      params.permit(:name, :count, :traits, attributes: {})
     end
   end
 end

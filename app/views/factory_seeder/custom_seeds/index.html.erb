@@ -1,0 +1,26 @@
+<div class="container">
+     <% if flash[:success] %>
+        <div class="alert alert-success">
+            <%= flash[:success] %>
+        </div>
+    <% end %>
+    
+    <% if flash[:error] %>
+        <div class="alert alert-error">
+            <%= flash[:error] %>
+        </div>
+    <% end %>
+   
+    <div class="seeds-grid">
+        <% @seeds.each do |name, seed| %>
+            <div class="seed-card">
+                <div class="seed-card-header">
+                    <%= link_to custom_seed_path(name), class: "seed-link" do %>
+                        <h3 class="seed-name"><%= name.to_s.humanize %></h3>
+                    <% end %>
+                    <div class="seed-icon">🏭</div>
+                </div>
+            </div>
+        <% end %>
+    </div>
+</div>

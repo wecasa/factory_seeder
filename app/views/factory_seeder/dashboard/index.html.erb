@@ -1,63 +1,23 @@
-<div class="container">
-    <div class="header">
-        <h1>🏭 FactorySeeder</h1>
-        <p>Database seeding made easy with FactoryBot</p>
-    </div>
+<div class="container">    
+    <!-- Flash messages -->
+    <% if flash[:success] %>
+        <div class="alert alert-success">
+            <%= flash[:success] %>
+        </div>
+    <% end %>
     
-    <div class="content">
-        <% if @factories.empty? %>
-            <div class="empty-state">
-                <h3>No factories found</h3>
-                <p>Make sure you have FactoryBot factories in your project.</p>
-                <p>Common locations: <code>spec/factories/</code> or <code>test/factories/</code></p>
-            </div>
-        <% else %>
-            <h2>Available Factories (<%= @factories.count %>)</h2>
-            <div class="factories-grid">
-                <% @factories.each do |name, info| %>
-                    <div class="factory-card">
-                        <div class="factory-name"><%= name %></div>
-                        <div class="factory-class"><%= info[:class_name] %></div>
-                        
-                        <% if info[:traits].any? %>
-                            <div class="factory-traits">
-                                <strong>Traits:</strong><br>
-                                <% info[:traits].each do |trait| %>
-                                    <span class="trait-tag"><%= trait %></span>
-                                <% end %>
-                            </div>
-                        <% end %>
-                        
-                        <% if info[:associations].any? %>
-                            <div class="factory-associations">
-                                <strong>Associations:</strong> <%= info[:associations].map { |a| a[:name] }.join(', ') %>
-                            </div>
-                        <% end %>
-                        
-                        <div class="factory-actions">
-                            <%= link_to "Generate Seeds", factory_path(name), class: "btn btn-primary" %>
-                            <button class="btn btn-secondary" onclick="previewFactory('<%= name %>')">Preview</button>
-                        </div>
-                    </div>
-                <% end %>
-            </div>
-        <% end %>
-    </div>
-</div>
+    <% if flash[:error] %>
+        <div class="alert alert-error">
+            <%= flash[:error] %>
+        </div>
+    <% end %>
+    
+    <% if flash[:info] %>
+        <div class="alert alert-info">
+            <%= flash[:info] %>
+        </div>
+    <% end %>
 
-<script>
-    function previewFactory(factoryName) {
-        fetch(`<%= api_factory_preview_path(':name') %>`.replace(':name', factoryName))
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Preview:\n' + JSON.stringify(data.attributes, null, 2));
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            })
-            .catch(error => {
-                alert('Error: ' + error.message);
-            });
-    }
-</script>
+    <%= link_to "Factories", factory_index_path, class: "btn btn-primary" %>
+    <%= link_to "Custom Seeds", custom_seeds_path, class: "btn btn-primary" %>
+</div>

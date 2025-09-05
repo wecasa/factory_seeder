@@ -4,6 +4,7 @@ module FactorySeeder
   class SeedGenerator
     def initialize
       @generated_records = []
+      @defined_seeds = {}
     end
 
     def preview(factory_name, count = 1, traits = [], attributes = {})
@@ -96,6 +97,36 @@ module FactorySeeder
       end
 
       summary
+    end
+
+    def define_seed(name, &block)
+      @defined_seeds[name.to_sym] = block
+    end
+
+    def run_seed(name)
+      seed_name = name.to_sym
+      unless @defined_seeds.key?(seed_name)
+        raise "Seed '#{name}' not found. Available seeds: #{@defined_seeds.keys.join(', ')}"
+      end
+      
+      @defined_seeds[seed_name].call(self)
+    end
+
+    def list_seeds
+      @defined_seeds.keys
+    end
+
+    def has_seed?(name)
+      @defined_seeds.key?(name.to_sym)
+    end
+
+    def run_all_seeds
+      puts "🌱 Running all defined seeds..."
+      @defined_seeds.each do |name, block|
+        puts "\n--- Running seed: #{name} ---"
+        block.call(self)
+      end
+      puts "\n✅ All seeds completed successfully"
     end
 
     private
