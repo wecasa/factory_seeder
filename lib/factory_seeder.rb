@@ -13,6 +13,9 @@ require_relative 'factory_seeder/asset_helper'
 require_relative 'factory_seeder/factory_scanner'
 require_relative 'factory_seeder/seed_generator'
 require_relative 'factory_seeder/seeder'
+require_relative 'factory_seeder/seed'
+require_relative 'factory_seeder/seed_builder'
+require_relative 'factory_seeder/seed_manager'
 require_relative 'factory_seeder/cli'
 require_relative 'factory_seeder/web_interface'
 require_relative 'factory_seeder/rails_integration'
@@ -46,13 +49,34 @@ module FactorySeeder
       @seeder ||= Seeder.new
     end
 
+    def seed_manager
+      @seed_manager ||= SeedManager.new
+    end
+
     def generate
       yield(seeder) if block_given?
       seeder
     end
 
+    def define_seed(name, builder_block = nil, &execution_block)
+      seed_manager.define(name, builder_block, &execution_block)
+    end
+
     def list_seeds
+      # Keep backward compatibility with old seeder
       seeder.seeds
+    end
+
+    def list_custom_seeds
+      seed_manager.list
+    end
+
+    def find_custom_seed(name)
+      seed_manager.find(name)
+    end
+
+    def run_custom_seed(name, **kwargs)
+      seed_manager.run(name, **kwargs)
     end
 
     def run(*names)

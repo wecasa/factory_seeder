@@ -10,17 +10,55 @@
             <%= flash[:error] %>
         </div>
     <% end %>
+
+    <div class="seeds-header">
+        <h1>Custom Seeds</h1>
+        <p class="seeds-count"><%= @seeds.count %> seed<%= 's' if @seeds.count != 1 %> available</p>
+    </div>
    
     <div class="seeds-grid">
-        <% @seeds.each do |name, seed| %>
+        <% @seeds.each do |seed| %>
             <div class="seed-card">
                 <div class="seed-card-header">
-                    <%= link_to custom_seed_path(name), class: "seed-link" do %>
-                        <h3 class="seed-name"><%= name.to_s.humanize %></h3>
+                    <%= link_to custom_seed_path(seed.name), class: "seed-link" do %>
+                        <h3 class="seed-name"><%= seed.name.to_s.humanize %></h3>
                     <% end %>
-                    <div class="seed-icon">🏭</div>
+                    <div class="seed-icon">🌱</div>
+                </div>
+                <div class="seed-card-body">
+                    <p class="seed-description"><%= seed.description %></p>
+                    <% if seed.has_parameters? %>
+                        <div class="seed-parameters">
+                            <span class="parameter-count">
+                                <%= pluralize(seed.parameter_names.count, 'parameter') %>
+                            </span>
+                            <div class="parameter-list">
+                                <% seed.parameter_names.each do |param_name| %>
+                                    <span class="parameter-tag">
+                                        <%= param_name.to_s.humanize %>
+                                        <% param_info = seed.parameter_info(param_name) %>
+                                        <% if param_info[:required] %>
+                                            <span class="required">*</span>
+                                        <% end %>
+                                    </span>
+                                <% end %>
+                            </div>
+                        </div>
+                    <% else %>
+                        <div class="no-parameters">
+                            <span class="no-params-text">No parameters required</span>
+                        </div>
+                    <% end %>
                 </div>
             </div>
         <% end %>
     </div>
+
+    <% if @seeds.empty? %>
+        <div class="empty-state">
+            <div class="empty-icon">🌱</div>
+            <h3>No custom seeds defined</h3>
+            <p>Create your first custom seed to get started.</p>
+        </div>
+    <% end %>
 </div>
