@@ -152,6 +152,11 @@ body {
     font-weight: 500;
 }
 
+.trait-checkbox {
+    display: inline-block;
+    margin-right: 10px;
+}
+
 /* Factory associations */
 .factory-associations {
     margin-bottom: 10px;

@@ -69,6 +69,7 @@ module FactorySeeder
 
       {
         factory: factory_name,
+        generated_records: @generated_records,
         count: generated_count,
         requested_count: count,
         traits: traits,
@@ -82,7 +83,7 @@ module FactorySeeder
       return 'No records generated' if @generated_records.empty?
 
       summary = "📊 Generation Summary:\n"
-      summary += '=' * 50 + "\n"
+      summary += "#{'=' * 50}\n"
 
       by_factory = @generated_records.group_by { |r| r[:factory] }
 
@@ -108,7 +109,7 @@ module FactorySeeder
       unless @defined_seeds.key?(seed_name)
         raise "Seed '#{name}' not found. Available seeds: #{@defined_seeds.keys.join(', ')}"
       end
-      
+
       @defined_seeds[seed_name].call(self)
     end
 
@@ -121,7 +122,7 @@ module FactorySeeder
     end
 
     def run_all_seeds
-      puts "🌱 Running all defined seeds..."
+      puts '🌱 Running all defined seeds...'
       @defined_seeds.each do |name, block|
         puts "\n--- Running seed: #{name} ---"
         block.call(self)

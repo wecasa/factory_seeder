@@ -34,10 +34,8 @@ module FactorySeeder
       # Check for required parameters
       required_params = @parameters.select { |_, info| info[:required] }.keys
       missing_params = required_params - kwargs.keys
-      
-      if missing_params.any?
-        raise ArgumentError, "Missing required parameters: #{missing_params.join(', ')}"
-      end
+
+      raise ArgumentError, "Missing required parameters: #{missing_params.join(', ')}" if missing_params.any?
 
       # Validate parameter types and values
       kwargs.each do |key, value|
@@ -95,9 +93,9 @@ module FactorySeeder
         raise ArgumentError, "Parameter '#{key}' must be >= #{param_info[:min]}"
       end
 
-      if param_info[:max] && value > param_info[:max]
-        raise ArgumentError, "Parameter '#{key}' must be <= #{param_info[:max]}"
-      end
+      return unless param_info[:max] && value > param_info[:max]
+
+      raise ArgumentError, "Parameter '#{key}' must be <= #{param_info[:max]}"
     end
   end
 end

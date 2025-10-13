@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FactorySeeder
   class DashboardController < ApplicationController
     def index
@@ -6,7 +8,7 @@ module FactorySeeder
     end
 
     def run_seed
-      seed_name = params[:name]
+      params[:name]
 
       begin
         flash[:info] = 'Seed system coming soon! For now, use the factory generation interface.'

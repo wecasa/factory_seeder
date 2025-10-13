@@ -31,9 +31,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'thor', '~> 1.0'
   spec.add_dependency 'webrick', '~> 1.7'
 
-  # Turbo et Stimulus (optionnels)
-  spec.add_development_dependency '@hotwired/stimulus', '~> 3.0'
-  spec.add_development_dependency '@hotwired/turbo-rails', '~> 7.0'
+  # NOTE: @hotwired/stimulus et @hotwired/turbo-rails sont des packages npm, pas des gems Ruby
+  # Ils ne sont pas nécessaires pour ce gem Ruby
 
   spec.add_development_dependency 'pry', '~> 0.14'
   spec.add_development_dependency 'rake', '~> 13.0'

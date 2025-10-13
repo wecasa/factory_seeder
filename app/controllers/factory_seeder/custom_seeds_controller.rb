@@ -21,13 +21,12 @@ module FactorySeeder
       attributes = safe_attributes_params
 
       result = FactorySeeder.run_custom_seed(seed_name, **attributes)
-      
+
       if result[:success]
         flash[:success] = result[:message]
       else
         flash[:error] = result[:message]
       end
-      
       redirect_to custom_seed_path(seed_name)
     end
 
@@ -38,11 +37,11 @@ module FactorySeeder
 
     def edit
       @seed = FactorySeeder.find_custom_seed(params[:name])
-      if @seed.nil?
-        flash[:error] = "Seed '#{params[:name]}' not found"
-        redirect_to custom_seeds_path
-        return
-      end
+      return unless @seed.nil?
+
+      flash[:error] = "Seed '#{params[:name]}' not found"
+      redirect_to custom_seeds_path
+      nil
     end
 
     def update
@@ -54,7 +53,7 @@ module FactorySeeder
 
     def destroy
       # For deleting seeds (future feature)
-      seed_name = params[:name]
+      params[:name]
       # Implementation would go here
       redirect_to custom_seeds_path
     end
@@ -66,7 +65,7 @@ module FactorySeeder
         # Convert string values to appropriate types based on seed parameter definitions
         raw_attributes = params.require(:attributes).permit!
         seed = FactorySeeder.find_custom_seed(params[:name])
-        
+
         if seed
           convert_attributes_to_types(raw_attributes, seed)
         else
@@ -79,18 +78,18 @@ module FactorySeeder
 
     def convert_attributes_to_types(raw_attributes, seed)
       converted = {}
-      
+
       raw_attributes.each do |key, value|
         param_info = seed.parameter_info(key)
         converted[key.to_sym] = convert_value_to_type(value, param_info)
       end
-      
+
       converted
     end
 
     def convert_value_to_type(value, param_info)
       return value if value.blank?
-      
+
       case param_info&.dig(:type)
       when :integer
         value.to_i

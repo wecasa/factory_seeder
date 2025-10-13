@@ -119,14 +119,13 @@ module FactorySeeder
       puts "  Verbose mode: #{FactorySeeder.configuration.verbose}"
     end
 
-
     desc 'seeds [SEED_NAME]', 'Run seeds from db/seeds_factory_seeder.rb'
     option :list, type: :boolean, default: false, desc: 'List all available seeds'
     option :all, type: :boolean, default: false, desc: 'Run all defined seeds'
     option :dry_run, type: :boolean, default: false, desc: 'Preview what would be generated'
     def seeds(seed_name = nil)
       seeds_file = 'db/seeds_factory_seeder.rb'
-      
+
       unless File.exist?(seeds_file)
         puts "❌ Seeds file not found: #{seeds_file}"
         puts "💡 Run 'factory_seeder init' to create the default seeds file"
@@ -147,8 +146,8 @@ module FactorySeeder
       end
 
       if seed_name.nil?
-        puts "❌ Please specify a seed name, use --list to see available seeds, or --all to run all seeds"
-        puts "💡 Example: factory_seeder seeds development"
+        puts '❌ Please specify a seed name, use --list to see available seeds, or --all to run all seeds'
+        puts '💡 Example: factory_seeder seeds development'
         return
       end
 
@@ -160,64 +159,60 @@ module FactorySeeder
     def list_available_seeds
       # Créer un générateur temporaire pour lister les seeds
       generator = SeedGenerator.new
-      
+
       # Charger le fichier de seeds pour avoir accès aux seeds définis
       load 'db/seeds_factory_seeder.rb'
-      
+
       seeds = generator.list_seeds
-      
+
       if seeds.empty?
-        puts "❌ No seeds defined in db/seeds_factory_seeder.rb"
-        puts "�� Add seeds using seeder.define_seed :name do ... end"
+        puts '❌ No seeds defined in db/seeds_factory_seeder.rb'
+        puts '�� Add seeds using seeder.define_seed :name do ... end'
         return
       end
-    
+
       puts "🌱 Available seeds from db/seeds_factory_seeder.rb:\n\n"
       seeds.each do |seed_name|
         puts "  • #{seed_name}"
       end
-      
+
       puts "\n💡 Run: factory_seeder seeds SEED_NAME"
-      puts "💡 Example: factory_seeder seeds development"
-      puts "💡 Run all: factory_seeder seeds --all"
+      puts '💡 Example: factory_seeder seeds development'
+      puts '💡 Run all: factory_seeder seeds --all'
     end
-    
+
     def run_all_seeds
-      puts "🌱 Running all seeds from db/seeds_factory_seeder.rb"
-      
-      if options[:dry_run]
-        puts "🔍 DRY RUN MODE - No records will be created"
-      end
-    
+      puts '🌱 Running all seeds from db/seeds_factory_seeder.rb'
+
+      puts '🔍 DRY RUN MODE - No records will be created' if options[:dry_run]
+
       begin
         generator = SeedGenerator.new
         generator.run_all_seeds
-        puts "✅ All seeds executed successfully"
+        puts '✅ All seeds executed successfully'
       rescue StandardError => e
         puts "❌ Error running seeds: #{e.message}"
         puts e.backtrace.first(5).join("\n") if options[:verbose]
       end
     end
-    
+
     def run_specific_seed(seed_name)
       puts "🌱 Running seed: #{seed_name}"
-      
-      if options[:dry_run]
-        puts "🔍 DRY RUN MODE - No records will be created"
-      end
-    
+
+      puts '🔍 DRY RUN MODE - No records will be created' if options[:dry_run]
+
       begin
         generator = SeedGenerator.new
-        
+
         # Charger le fichier de seeds pour avoir accès aux seeds définis
         load 'db/seeds_factory_seeder.rb'
-        
+
         unless generator.has_seed?(seed_name)
           puts "❌ Seed '#{seed_name}' not found"
           puts "💡 Available seeds: #{generator.list_seeds.join(', ')}"
           return
         end
-    
+
         generator.run_seed(seed_name)
         puts "✅ Seed '#{seed_name}' executed successfully"
       rescue StandardError => e
@@ -240,7 +235,7 @@ module FactorySeeder
       end
 
       print "\nSelect factory (number or name): "
-      selection = STDIN.gets.chomp
+      selection = $stdin.gets.chomp
 
       factory_name = if selection.match?(/^\d+$/)
                        index = selection.to_i - 1

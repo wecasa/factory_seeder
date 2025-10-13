@@ -6,9 +6,7 @@ module FactorySeeder
       return unless defined?(Rails)
 
       # Ensure models are loaded before scanning factories
-      if Rails.respond_to?(:application) && Rails.application && Rails.application.config.eager_load
-        Rails.application.eager_load!
-      end
+      Rails.application.eager_load! if Rails.respond_to?(:application) && Rails.application&.config&.eager_load
 
       # Add Rails-specific factory paths
       FactorySeeder.configuration.factory_paths << 'spec/factories' if Dir.exist?('spec/factories')
@@ -22,7 +20,7 @@ module FactorySeeder
       return unless defined?(Rails)
 
       # Load all models
-      if Rails.respond_to?(:application) && Rails.application && Rails.application.config.eager_load
+      if Rails.respond_to?(:application) && Rails.application&.config&.eager_load
         Rails.application.eager_load!
       elsif Rails.respond_to?(:root)
         # Alternative: manually load models if eager_load is disabled

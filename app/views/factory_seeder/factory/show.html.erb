@@ -7,23 +7,20 @@
     <div class="content">
         <div class="factory-info">
             <h3>Factory Information</h3>
+            <% if flash[:success] %>
+                <div class="alert alert-success">
+                    <%= flash[:success] %>
+                </div>
+            <% end %>
+            
+            <% if flash[:error] %>
+                <div class="alert alert-error">
+                    <%= flash[:error] %>
+                </div>
+            <% end %>
             <div class="info-item">
                 <span class="info-label">Class:</span> <%= @factory[:class_name] %>
             </div>
-            
-            <% if @factory[:traits].any? %>
-                <div class="info-item">
-                    <span class="info-label">Available Traits:</span><br>
-                    <div class="traits-checkboxes">
-                        <% @factory[:traits].each do |trait| %>
-                            <label class="trait-checkbox">
-                                <%= check_box_tag "selected_traits[]", trait, false, id: "trait_#{trait}" %>
-                                <span class="trait-label"><%= trait %></span>
-                            </label>
-                        <% end %>
-                    </div>
-                </div>
-            <% end %>
             
             <% if @factory[:associations].any? %>
                 <div class="info-item">
@@ -40,14 +37,21 @@
                     <%= label_tag :count, "Number of records:" %>
                     <%= number_field_tag :count, 1, min: 1, max: 100, class: "form-control" %>
                 </div>
-
-                <% if @factory[:traits].any? %>
-                    <div class="form-group">
-                        <%= label_tag :traits, "Traits (comma-separated):" %>
-                        <%= text_field_tag :traits, nil, class: "form-control", placeholder: "e.g., admin, verified" %>
-                    </div>
-                <% end %>
             </div>
+
+            <% if @factory[:traits].any? %>
+                <div class="form-section">
+                    <h3>Available Traits</h3>
+                    <div class="traits-checkboxes">
+                        <% @factory[:traits].each do |trait| %>
+                            <label class="trait-checkbox">
+                                <%= check_box_tag "selected_traits[]", trait, false, id: "trait_#{trait}" %>
+                                <span class="trait-label"><%= trait %></span>
+                            </label>
+                        <% end %>
+                    </div>
+                </div>
+            <% end %>
 
             <div class="form-section">
                 <h3>Custom Attributes</h3>

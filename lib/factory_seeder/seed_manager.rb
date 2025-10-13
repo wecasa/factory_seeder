@@ -9,7 +9,8 @@ module FactorySeeder
     end
 
     def register(seed)
-      raise ArgumentError, "Seed must be a FactorySeeder::Seed instance" unless seed.is_a?(Seed)
+      raise ArgumentError, 'Seed must be a FactorySeeder::Seed instance' unless seed.is_a?(Seed)
+
       @seeds[seed.name] = seed
     end
 
@@ -61,8 +62,8 @@ module FactorySeeder
 
     def run_all(**global_kwargs)
       results = []
-      
-      @seeds.each do |name, seed|
+
+      @seeds.each_key do |name|
         result = run(name, **global_kwargs)
         results << result
       end
@@ -81,7 +82,7 @@ module FactorySeeder
 
       seed.validate_parameters!(kwargs)
       true
-    rescue StandardError => e
+    rescue StandardError
       false
     end
 
@@ -96,8 +97,8 @@ module FactorySeeder
       query = query.to_s.downcase
       @seeds.values.select do |seed|
         seed.name.to_s.downcase.include?(query) ||
-        seed.description.downcase.include?(query) ||
-        seed.parameter_names.any? { |param| param.to_s.downcase.include?(query) }
+          seed.description.downcase.include?(query) ||
+          seed.parameter_names.any? { |param| param.to_s.downcase.include?(query) }
       end
     end
 
