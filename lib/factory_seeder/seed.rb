@@ -67,6 +67,7 @@ module FactorySeeder
     def validate_parameter_type!(key, value, param_info)
       expected_type = param_info[:type]
       return unless expected_type
+      return unless value.present? && param_info[:required]
 
       case expected_type
       when :string

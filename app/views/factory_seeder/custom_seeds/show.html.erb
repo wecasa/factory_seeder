@@ -57,7 +57,7 @@
                                         class: "form-control" %>
                                 <% when :integer %>
                                     <%= number_field_tag "attributes[#{param_name}]", 
-                                        param_info[:default], 
+                                        param_info[:default] || nil, 
                                         id: param_name,
                                         class: "form-control",
                                         min: param_info[:min],
@@ -69,6 +69,12 @@
                                         id: param_name,
                                         class: "form-control",
                                         placeholder: "Enter values separated by commas" %>
+                                <% when :date %>
+                                    <%= date_field_tag "attributes[#{param_name}]", 
+                                        param_info[:default]&.to_date, 
+                                        id: param_name,
+                                        class: "form-control",
+                                        placeholder: "Enter #{param_name.to_s.humanize.downcase}" %>
                                 <% when :symbol %>
                                     <% if param_info[:allowed_values] %>
                                         <%= select_tag "attributes[#{param_name}]", 
