@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Association Support**: Handle complex model relationships
 - **Environment Support**: Different settings per environment
 
+### Changed
+- CLI `list` now reports each factory's class name, traits, associations, and attribute hints so the CLI equals the web experience.
+- CLI `generate`/`preview` default to `config.default_count`/`config.default_strategy` when options are omitted and accept JSON payloads for `--attributes`.
+
 ### Technical Details
 - Built on top of FactoryBot 6.x
 - Uses Thor for CLI interface

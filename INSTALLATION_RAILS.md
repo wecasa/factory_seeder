@@ -79,6 +79,8 @@ bundle exec factory_seeder preview user --traits=admin
 bundle exec factory_seeder generate user --count=5 --traits=admin,vip
 ```
 
+> ⚙️ `factory_seeder list` affiche maintenant la classe, les traits, les associations et des indices d'attributs pour chaque factory. Si tu oublies `--count` ou `--strategy`, la CLI prend les valeurs de `config.default_count` / `config.default_strategy`. Tu peux aussi fournir un JSON avec `--attributes='{"admin":true}'`.
+
 ### Test avec tes modèles Rails
 ```bash
 # Dans la console Rails

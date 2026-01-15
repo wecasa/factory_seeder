@@ -101,6 +101,8 @@ factory_seeder web --port=3000
 factory_seeder init
 ```
 
+The CLI enhancements mirror the web UX: `factory_seeder list` now prints each factory's class name, traits, associations, and key attributes, while `generate`/`preview` inherit `config.default_count`/`config.default_strategy` when `--count`/`--strategy` are omitted. For complex payloads you can pass JSON to `--attributes` (e.g. `--attributes='{"admin":true,"country":"fr"}'`).
+
 ### Web Interface
 
 Start the web interface and navigate to `http://localhost:4567`:
