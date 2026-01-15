@@ -7,9 +7,9 @@ module FactorySeeder
     class_option :verbose, type: :boolean, aliases: '-v', desc: 'Enable verbose output'
 
     desc 'generate [FACTORY]', 'Generate seeds for a specific factory'
-    option :count, type: :numeric, default: 1, desc: 'Number of records to create'
+    option :count, type: :numeric, desc: 'Number of records to create (defaults to config per environment)'
     option :traits, type: :array, desc: 'Traits to apply'
-    option :strategy, type: :string, default: 'create', desc: 'Factory strategy (create, build, etc.)'
+    option :strategy, type: :string, desc: 'Factory strategy (defaults to config per environment)'
     option :attributes, type: :hash, desc: 'Additional attributes'
     def generate(factory_name = nil)
       if factory_name
@@ -19,28 +19,31 @@ module FactorySeeder
       end
     end
 
-    desc 'list', 'List all available factories'
+    desc 'list', 'List all available factories with metadata'
     option :verbose, type: :boolean, aliases: '-v'
     def list
       FactorySeeder.configuration.verbose = options[:verbose] if options[:verbose]
 
-      # Utiliser list_factory_names pour éviter les problèmes de chargement
-      factory_names = FactorySeeder.list_factory_names
+      factories = FactorySeeder.scan_factories
 
-      if factory_names.empty?
+      if factories.empty?
         puts '❌ No factories found. Make sure you have FactoryBot factories in spec/factories/ or test/factories/'
         return
       end
 
-      puts "📋 Found #{factory_names.count} factories:\n\n"
+      puts "📋 Found #{factories.count} factories:\n\n"
 
-      factory_names.each do |name|
-        puts "🏭 #{name}"
+      factories.sort.each do |name, info|
+        puts "🏭 #{name} (#{info[:class_name] || 'Unknown class'})"
+        puts "   Traits: #{formatted_traits(info[:traits])}"
+        puts "   Associations: #{formatted_associations(info[:associations])}"
+        puts "   Attributes: #{formatted_attributes(info[:attributes])}"
+        puts
       end
     end
 
     desc 'preview FACTORY_NAME', 'Preview factory data without creating records'
-    option :count, type: :numeric, default: 1, aliases: '-c'
+    option :count, type: :numeric, aliases: '-c', desc: 'Number of preview records (defaults to config per environment)'
     option :traits, type: :string, aliases: '-t'
     option :attributes, type: :string, aliases: '-a'
     def preview(factory_name)
@@ -58,7 +61,7 @@ module FactorySeeder
       attributes = parse_attributes(options[:attributes])
 
       generator = SeedGenerator.new
-      preview_data = generator.preview(factory_name, options[:count], traits, attributes)
+      preview_data = generator.preview(factory_name, resolved_count, traits, attributes)
 
       puts "🔍 Preview for #{factory_name}:"
       puts JSON.pretty_generate(preview_data)
@@ -262,9 +265,11 @@ module FactorySeeder
 
       traits = options[:traits] || []
       attributes = options[:attributes] || {}
+      count = resolved_count
+      strategy = resolved_strategy
 
       generator = SeedGenerator.new
-      result = generator.generate(factory_name, options[:count], traits, attributes, options[:strategy])
+      result = generator.generate(factory_name, count, traits, attributes, strategy)
 
       puts "✅ Generated #{result[:count]} #{factory_name} records"
       puts "Strategy: #{result[:strategy]}"
@@ -275,12 +280,73 @@ module FactorySeeder
     def parse_attributes(attributes_string)
       return {} unless attributes_string
 
+      trimmed = attributes_string.strip
+      if trimmed.start_with?('{') && trimmed.end_with?('}')
+        JSON.parse(trimmed)
+      else
+        parse_attribute_pairs(trimmed)
+      end
+    rescue JSON::ParserError => e
+      puts "⚠️  Could not parse attributes JSON: #{e.message}" if FactorySeeder.configuration.verbose
+      parse_attribute_pairs(attributes_string)
+    end
+
+    def parse_attribute_pairs(attributes_string)
       attributes = {}
       attributes_string.split(',').each do |pair|
+        next if pair.strip.empty?
         key, value = pair.split('=').map(&:strip)
         attributes[key] = value if key && value
       end
       attributes
+    end
+
+    def resolved_count
+      options[:count] || FactorySeeder.configuration.default_count_for_environment
+    end
+
+    def resolved_strategy
+      (options[:strategy] || FactorySeeder.configuration.default_strategy_for_environment).to_s
+    end
+
+    def formatted_traits(traits)
+      traits = Array(traits)
+      return 'None' if traits.empty?
+
+      traits.join(', ')
+    end
+
+    def formatted_associations(associations)
+      associations = Array(associations)
+      return 'None' if associations.empty?
+
+      associations.map { |assoc| format_association(assoc) }.join(', ')
+    end
+
+    def formatted_attributes(attributes)
+      attributes = Array(attributes)
+      return 'None' if attributes.empty?
+
+      attributes.map do |attribute|
+        name = attribute[:name] || attribute['name']
+        type = attribute[:type] || attribute['type']
+        type_part = type ? " (#{type})" : ''
+        "#{name || 'unknown'}#{type_part}"
+      end.join(', ')
+    end
+
+    def format_association(association)
+      return association.to_s unless association.respond_to?(:[])
+
+      name = association[:name] || association['name'] || 'association'
+      parts = []
+      factory = association[:factory] || association['factory']
+      strategy = association[:strategy] || association['strategy']
+      parts << "factory: #{factory}" if factory
+      parts << "strategy: #{strategy}" if strategy
+      return name if parts.empty?
+
+      "#{name} (#{parts.join(', ')})"
     end
   end
 end
