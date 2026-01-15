@@ -61,6 +61,8 @@ bundle exec factory_seeder list
 bundle exec factory_seeder generate user --count 5
 ```
 
+> `factory_seeder list` affiche désormais la classe, les traits, les associations et les attributs clés. Les commandes `generate` et `preview` utilisent `config.default_count` / `config.default_strategy` quand les options sont absentes et acceptent des JSON via `--attributes`.
+
 ## Mise à Jour
 
 ### Pour les modifications locales

@@ -115,7 +115,7 @@ end
 FactorySeeder.define_seed(:create_posts_with_comments) do |builder|
   builder
     .description("Créer des posts avec commentaires associés")
-    .integer_param(:post_count, required: true, min: 1, max: 50, description: "Nombre de posts")
+    .params(:post_count, required: true, type: integer, min: 1, max: 50, description: "Nombre de posts")
     .integer_param(:comments_per_post, required: false, default: 3, min: 0, max: 10, description: "Commentaires par post")
     .boolean_param(:published, required: false, default: true, description: "Posts publiés")
 end do |post_count:, comments_per_post: 3, published: true|

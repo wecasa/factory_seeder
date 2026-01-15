@@ -36,6 +36,8 @@ RUBYOPT="-r ./test_environment.rb" ./bin/factory_seeder list
 - Liste des 3 factories (user, post, comment)
 - Affichage des traits disponibles
 - Affichage des associations
+- Affichage de la classe et des attributs clés pour chaque factory, en gardant la sortie alignée sur l'interface web
+- `preview` et `generate` héritent des `default_count` / `default_strategy` de la configuration si tu ne passes pas `--count` ou `--strategy`
 
 ### 2. **Test CLI - Prévisualisation**
 

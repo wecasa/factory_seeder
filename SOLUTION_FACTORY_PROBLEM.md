@@ -53,6 +53,8 @@ bundle exec factory_seeder list --verbose
 # ✅ Successfully loaded: spec/factories/potential/schedule.rb
 ```
 
+> `factory_seeder list` affiche désormais la classe, les traits, les associations et les attributs associés à chaque factory (comme l'interface web) et hérite des valeurs de `config.default_count` / `config.default_strategy` si tu oublies les options.
+
 ## 🔧 **Pour ta Factory Spécifique**
 
 ### **Option 1 : Garder ta factory actuelle**
