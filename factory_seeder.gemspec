@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'sinatra-contrib', '~> 2.0'
   spec.add_dependency 'thor', '~> 1.0'
   spec.add_dependency 'webrick', '~> 1.7'
+  spec.add_dependency 'zeitwerk', '~> 2.6'
 
   # NOTE: @hotwired/stimulus et @hotwired/turbo-rails sont des packages npm, pas des gems Ruby
   # Ils ne sont pas nécessaires pour ce gem Ruby
