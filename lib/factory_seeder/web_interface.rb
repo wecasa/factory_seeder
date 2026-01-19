@@ -9,6 +9,10 @@ module FactorySeeder
       set :bind, '0.0.0.0'
     end
 
+    before do
+      FactorySeeder.reload!
+    end
+
     get '/' do
       @factories = FactorySeeder.scan_factories
       erb :index
