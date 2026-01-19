@@ -6,20 +6,9 @@ require 'sinatra'
 require 'sinatra/reloader'
 require 'json'
 require 'faker'
+require 'zeitwerk'
 
 require_relative 'factory_seeder/version'
-require_relative 'factory_seeder/configuration'
-require_relative 'factory_seeder/asset_helper'
-require_relative 'factory_seeder/factory_scanner'
-require_relative 'factory_seeder/seed_generator'
-require_relative 'factory_seeder/seeder'
-require_relative 'factory_seeder/seed'
-require_relative 'factory_seeder/seed_builder'
-require_relative 'factory_seeder/seed_manager'
-require_relative 'factory_seeder/cli'
-require_relative 'factory_seeder/web_interface'
-require_relative 'factory_seeder/rails_integration'
-require 'factory_seeder/engine'
 
 module FactorySeeder
   class << self
@@ -29,6 +18,15 @@ module FactorySeeder
 
     def configure
       yield(configuration)
+    end
+
+    def loader
+      Loader
+    end
+
+    def reload!
+      Loader.reload!
+      CustomSeedLoader.reload!
     end
 
     def scan_factories
@@ -161,3 +159,8 @@ module FactorySeeder
     end
   end
 end
+
+require_relative 'factory_seeder/loader'
+FactorySeeder::Loader.setup
+
+require_relative 'factory_seeder/engine'

@@ -111,6 +111,10 @@ Start the web interface and navigate to `http://localhost:4567`:
 factory_seeder web
 ```
 
+- Les fichiers `db/factory_seeds/*.rb` sont automatiquement rechargés à chaque préparation de requête Rails grâce au `config.to_prepare` de l'engin, tu n’as donc plus besoin de redémarrer le serveur pour voir les changements des seeds personnalisés.
+
+- L'interface web (Sinatra) appelle `FactorySeeder.reload!` avant chaque requête, donc tes fichiers de configuration et seeds personnalisés sont rechargés sans relancer `factory_seeder web`.
+
 Features:
 - 📋 Visual factory listing
 - 🎨 Trait selection with checkboxes

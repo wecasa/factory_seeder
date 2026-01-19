@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - CLI `list` now reports each factory's class name, traits, associations, and attribute hints so the CLI equals the web experience.
 - CLI `generate`/`preview` default to `config.default_count`/`config.default_strategy` when options are omitted and accept JSON payloads for `--attributes`.
+- Custom seeds under `db/factory_seeds` are reloaded automatically when the Rails engine prepares a request, so modifications surface without restarting the server.
+- The standalone web interface now calls `FactorySeeder.reload!` before every request, so file edits take effect immediately without restarting `factory_seeder web`.
 
 ### Technical Details
 - Built on top of FactoryBot 6.x

@@ -9,12 +9,8 @@ module FactorySeeder
       g.template_engine :erb
     end
 
-    config.after_initialize do
-      
-      custom_seeds_path = Rails.root.join('db', 'factory_seeds', '*.rb')
-      Dir.glob(custom_seeds_path).each do |file|
-        load file
-      end
+    config.to_prepare do
+      FactorySeeder::CustomSeedLoader.reload!
     end
   end
 end
