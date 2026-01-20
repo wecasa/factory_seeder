@@ -1,138 +1,95 @@
-<div class="container">
-    <div class="seed-detail-header">
-        <h1><%= @seed.name.to_s.humanize %></h1>
-        <p class="seed-description"><%= @seed.description %></p>
+<div class="page-shell">
+  <div class="scanlines"></div>
+  <div class="grid-background"></div>
+  <div class="page-content">
+    <header class="section-title">Custom Seed · <%= @seed.name.to_s.humanize %></header>
+    <div class="factory-card__label">
+      <%= link_to "← Back to seeds", custom_seeds_path, class: "btn btn-accent" %>
     </div>
+    <p class="hero__subtitle"><%= @seed.description %></p>
 
     <% if flash[:success] %>
-        <div class="alert alert-success">
-            <%= flash[:success] %>
-        </div>
+      <div class="alert-message alert-message--success"><%= flash[:success] %></div>
     <% end %>
-    
+
     <% if flash[:error] %>
-        <div class="alert alert-error">
-            <%= flash[:error] %>
-        </div>
+      <div class="alert-message alert-message--error"><%= flash[:error] %></div>
     <% end %>
-    
+
     <% if flash[:info] %>
-        <div class="alert alert-info">
-            <%= flash[:info] %>
-        </div>
+      <div class="alert-message alert-message--info"><%= flash[:info] %></div>
     <% end %>
 
+    <div class="factory-show-grid">
+      <section class="panel seed-detail">
+        <div class="seed-detail__hero">
+          <h2 class="seed-detail__title"><%= @seed.name.to_s.humanize %></h2>
+          <p class="seed-detail__subtitle"><%= @seed.description %></p>
+          <div class="seed-card__tags">
+            <span class="seed-card__tag"><%= pluralize(@seed.parameter_names.count, 'parameter') %></span>
+          </div>
+        </div>
 
-    <div class="seed-card-body">
-        <% if @seed.has_parameters? %>
-            <div class="parameters-section">
-                <h4>Parameters</h4>
-                <div class="parameters-info">
-                    <p>This seed requires <%= pluralize(@seed.parameter_names.count, 'parameter') %>:</p>
+        <div class="seed-detail-form panel__body">
+          <% if @seed.has_parameters? %>
+            <div class="panel__title">Parameters</div>
+            <%= form_tag create_custom_seede_path(@seed_name), method: :post do %>
+              <% @seed.parameter_names.each do |param_name| %>
+                <% param_info = @seed.parameter_info(param_name) %>
+                <div class="form-group">
+                  <label for="<%= param_name %>">
+                    <%= param_name.to_s.humanize %>
+                    <% if param_info[:required] %>
+                      <span class="required">*</span>
+                    <% end %>
+                  </label>
+                  <% if param_info[:description].present? %>
+                    <small class="parameter-description"><%= param_info[:description] %></small>
+                  <% end %>
+
+                  <% case param_info[:type] %>
+                  <% when :boolean %>
+                    <%= select_tag "attributes[#{param_name}]", options_for_select([['Select...', ''], ['Yes', 'true'], ['No', 'false']], param_info[:default]&.to_s), class: "form-control" %>
+                  <% when :integer %>
+                    <%= number_field_tag "attributes[#{param_name}]", param_info[:default], class: "form-control", min: param_info[:min], max: param_info[:max], placeholder: "Enter value" %>
+                  <% else %>
+                    <%= text_field_tag "attributes[#{param_name}]", param_info[:default], class: "form-control", placeholder: "Enter #{param_name.to_s.humanize.downcase}" %>
+                  <% end %>
+
+                  <% if param_info[:allowed_values].present? && param_info[:type] != :symbol %>
+                    <small class="allowed-values">Allowed: <%= param_info[:allowed_values].join(', ') %></small>
+                  <% end %>
                 </div>
-                <%= form_tag create_custom_seede_path(@seed_name), method: :post, class: "seed-form" do %>
-                    <div class="form-fields">
-                        <% @seed.parameter_names.each do |param_name| %>
-                            <% param_info = @seed.parameter_info(param_name) %>
-                            <div class="form-group">
-                                <label for="<%= param_name %>">
-                                    <%= param_name.to_s.humanize %>
-                                    <% if param_info[:required] %>
-                                        <span class="required">*</span>
-                                    <% end %>
-                                </label>
-                                <% if param_info[:description] %>
-                                    <small class="parameter-description"><%= param_info[:description] %></small>
-                                <% end %>
-                                
-                                <% case param_info[:type] %>
-                                <% when :boolean %>
-                                    <%= select_tag "attributes[#{param_name}]", 
-                                        options_for_select([
-                                            ['Select...', ''],
-                                            ['Yes', 'true'],
-                                            ['No', 'false']
-                                        ], param_info[:default] ? (param_info[:default] ? 'true' : 'false') : ''),
-                                        id: param_name,
-                                        class: "form-control" %>
-                                <% when :integer %>
-                                    <%= number_field_tag "attributes[#{param_name}]", 
-                                        param_info[:default] || nil, 
-                                        id: param_name,
-                                        class: "form-control",
-                                        min: param_info[:min],
-                                        max: param_info[:max],
-                                        placeholder: "Enter #{param_name.to_s.humanize.downcase}" %>
-                                <% when :array %>
-                                    <%= text_field_tag "attributes[#{param_name}]", 
-                                        param_info[:default]&.join(', '), 
-                                        id: param_name,
-                                        class: "form-control",
-                                        placeholder: "Enter values separated by commas" %>
-                                <% when :date %>
-                                    <%= date_field_tag "attributes[#{param_name}]", 
-                                        param_info[:default]&.to_date, 
-                                        id: param_name,
-                                        class: "form-control",
-                                        placeholder: "Enter #{param_name.to_s.humanize.downcase}" %>
-                                <% when :symbol %>
-                                    <% if param_info[:allowed_values] %>
-                                        <%= select_tag "attributes[#{param_name}]", 
-                                            options_for_select([
-                                                ['Select...', ''] + param_info[:allowed_values].map { |v| [v.to_s.humanize, v.to_s] }
-                                            ], param_info[:default]&.to_s),
-                                            id: param_name,
-                                            class: "form-control" %>
-                                    <% else %>
-                                        <%= text_field_tag "attributes[#{param_name}]", 
-                                            param_info[:default]&.to_s, 
-                                            id: param_name,
-                                            class: "form-control",
-                                            placeholder: "Enter #{param_name.to_s.humanize.downcase}" %>
-                                    <% end %>
-                                <% when :string %>
-                                    <%= text_field_tag "attributes[#{param_name}]", 
-                                        param_info[:default]&.to_s, 
-                                        id: param_name,
-                                        class: "form-control",
-                                        placeholder: "Enter #{param_name.to_s.humanize.downcase}" %>
-                                <% else %>
-                                    <% if param_info[:allowed_values] %>
-                                        <%= select_tag "attributes[#{param_name}]", 
-                                            options_for_select([
-                                                ['Select...', ''] + param_info[:allowed_values].map { |v| [v.to_s.humanize, v.to_s] }
-                                            ], param_info[:default]&.to_s),
-                                            id: param_name,
-                                            class: "form-control" %>
-                                    <% else %>
-                                        <%= text_field_tag "attributes[#{param_name}]", 
-                                            param_info[:default], 
-                                            id: param_name,
-                                            class: "form-control",
-                                            placeholder: "Enter #{param_name.to_s.humanize.downcase}" %>
-                                    <% end %>
-                                <% end %>
-                                
-                                <% if param_info[:allowed_values] && param_info[:type] != :symbol %>
-                                    <small class="allowed-values">
-                                        Allowed values: <%= param_info[:allowed_values].join(', ') %>
-                                    </small>
-                                <% end %>
-                            </div>
-                        <% end %>
-                    </div>
-                    <div class="form-actions">
-                        <%= submit_tag "Generate Seed", class: "btn btn-primary" %>
-                    </div>
-                <% end %>
+              <% end %>
+
+              <div class="form-actions">
+                <%= submit_tag "Run Seed", class: "btn btn-primary" %>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="alert-message alert-message--info">
+              This seed does not expose any parameters. It will execute with its default settings.
             </div>
-        <% else %>
-            <div class="no-parameters">
-                <p>No parameters required for this seed.</p>
-                <%= form_tag create_custom_seede_path(@seed_name), method: :post, class: "seed-form" do %>
-                    <%= submit_tag "Generate Seed", class: "btn btn-primary" %>
-                <% end %>
+            <div class="form-actions">
+              <%= form_tag create_custom_seede_path(@seed_name), method: :post do %>
+                <%= submit_tag "Run Seed", class: "btn btn-primary" %>
+              <% end %>
             </div>
-        <% end %>
+          <% end %>
+        </div>
+      </section>
+
+      <section class="panel console">
+        <div class="console__header">
+          <span>Execution Console</span>
+          <span class="factory-card__meta">Logs stream here when running.</span>
+        </div>
+        <div class="console__body">
+          <div class="console-log">
+            <span>[ --:--:-- ]</span>Waiting for execution...
+          </div>
+        </div>
+      </section>
     </div>
+  </div>
 </div>

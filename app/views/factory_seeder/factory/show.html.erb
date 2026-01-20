@@ -1,74 +1,90 @@
-<div class="container" data-factory-name="<%= @factory_name %>">
-    <div class="header">
-        <%= link_to "← Back to Factories", factory_index_path, class: "back-link" %>
-        <h1>🏭 <%= @factory_name %></h1>
-    </div>
-    
-    <div class="content">
-        <div class="factory-info">
-            <h3>Factory Information</h3>
-            <% if flash[:success] %>
-                <div class="alert alert-success">
-                    <%= flash[:success] %>
-                </div>
-            <% end %>
-            
-            <% if flash[:error] %>
-                <div class="alert alert-error">
-                    <%= flash[:error] %>
-                </div>
-            <% end %>
-            <div class="info-item">
-                <span class="info-label">Class:</span> <%= @factory[:class_name] %>
-            </div>
-            
-            <% if @factory[:associations].any? %>
-                <div class="info-item">
-                    <span class="info-label">Associations:</span> <%= @factory[:associations].map { |a| a[:name] }.join(', ') %>
-                </div>
-            <% end %>
+<div class="page-shell" data-factory-name="<%= @factory_name %>">
+  <div class="scanlines"></div>
+  <div class="grid-background"></div>
+  <div class="page-content">
+    <header class="section-title">Factory · <%= @factory_name %></header>
+    <p class="hero__subtitle">
+      Configure the execution parameters for this factory, toggle traits, and send the
+      job to the generator.
+    </p>
+
+    <% if flash[:success] %>
+      <div class="alert-message alert-message--success"><%= flash[:success] %></div>
+    <% end %>
+
+    <% if flash[:error] %>
+      <div class="alert-message alert-message--error"><%= flash[:error] %></div>
+    <% end %>
+
+    <div class="factory-show-grid">
+      <section class="panel">
+        <div class="panel__header">
+          <div>
+            <div class="panel__title">Configuration</div>
+            <div class="factory-card__meta">Class: <%= @factory[:class_name] %></div>
+          </div>
+          <%= link_to "Back", factory_index_path, class: "btn btn-accent" %>
         </div>
 
-        <%= form_tag generate_factory_path(@factory_name), method: :post, id: "generateForm" do %>
-            <div class="form-section">
-                <h3>Generation Options</h3>
-                
-                <div class="form-group">
-                    <%= label_tag :count, "Number of records:" %>
-                    <%= number_field_tag :count, 1, min: 1, max: 100, class: "form-control" %>
-                </div>
+        <%= form_tag generate_factory_path(@factory_name), method: :post do %>
+          <div class="panel__body">
+            <div class="form-group">
+              <label for="count">Records to generate</label>
+              <%= number_field_tag :count, 1, min: 1, max: 100, class: "form-control" %>
             </div>
 
-            <% if @factory[:traits].any? %>
-                <div class="form-section">
-                    <h3>Available Traits</h3>
-                    <div class="traits-checkboxes">
-                        <% @factory[:traits].each do |trait| %>
-                            <label class="trait-checkbox">
-                                <%= check_box_tag "selected_traits[]", trait, false, id: "trait_#{trait}" %>
-                                <span class="trait-label"><%= trait %></span>
-                            </label>
-                        <% end %>
-                    </div>
+            <% traits = Array(@factory[:traits]) %>
+            <% if traits.any? %>
+              <div class="form-group">
+                <label>Traits</label>
+                <div class="trait-grid">
+                  <% traits.each do |trait| %>
+                    <label class="trait-checkbox">
+                      <%= check_box_tag "selected_traits[]", trait, false, id: "trait_#{trait}" %>
+                      <span><%= trait %></span>
+                    </label>
+                  <% end %>
                 </div>
+              </div>
             <% end %>
 
-            <div class="form-section">
-                <h3>Custom Attributes</h3>
-                <p>Override default values for specific attributes:</p>
-                
+            <div class="form-group">
+              <label>Associations</label>
+              <p class="factory-card__meta">
+                <%= Array(@factory[:associations]).map { |assoc| assoc[:name] }.join(', ').presence || 'None' %>
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label>Attributes</label>
+              <div class="attribute-grid">
                 <% @factory[:attributes].each do |attr| %>
-                    <div class="form-group">
-                        <%= label_tag "attributes_#{attr[:name]}", "#{attr[:name]} (#{attr[:type]}):" %>
-                        <%= text_field_tag "attributes[#{attr[:name]}]", nil, class: "form-control", placeholder: "Leave empty to use default" %>
-                    </div>
+                  <div class="attribute-row">
+                    <label for="attributes_<%= attr[:name] %>"><%= attr[:name] %> (<%= attr[:type] %>)</label>
+                    <%= text_field_tag "attributes[#{attr[:name]}]", nil, class: "form-control", placeholder: "Use default" %>
+                  </div>
                 <% end %>
+              </div>
             </div>
 
             <div class="form-actions">
-                <%= link_to "Preview", preview_factory_path(@factory_name), class: "btn btn-secondary" %>
-                <%= submit_tag "Generate Seeds", class: "btn btn-primary" %>
+              <%= submit_tag "Generate Seeds", class: "btn btn-primary" %>
             </div>
+          </div>
         <% end %>
+      </section>
+
+      <section class="panel console">
+        <div class="console__header">
+          <span>Console Output</span>
+          <span class="factory-card__meta">Live logs will appear once a job runs.</span>
+        </div>
+        <div class="console__body">
+          <div class="console-log">
+            <span>[ --:--:-- ]</span>Awaiting execution trigger...
+          </div>
+        </div>
+      </section>
     </div>
+  </div>
 </div>

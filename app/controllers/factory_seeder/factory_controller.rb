@@ -40,24 +40,6 @@ module FactorySeeder
       end
     end
 
-    def preview
-      factory_name = params[:name]
-      count = (params[:count] || 1).to_i
-      traits = parse_traits(params[:selected_traits])
-      attributes = generate_params[:attributes]
-
-      begin
-        generator = SeedGenerator.new
-        @preview_data = generator.preview(factory_name, count, traits, attributes)
-        @factory_name = factory_name
-
-        render :preview
-      rescue StandardError => e
-        flash[:error] = "Error previewing factory: #{e.message}"
-        redirect_to factory_path(factory_name)
-      end
-    end
-
     private
 
     def parse_traits(traits_param)

@@ -1,64 +1,51 @@
-<div class="container">
-     <% if flash[:success] %>
-        <div class="alert alert-success">
-            <%= flash[:success] %>
-        </div>
-    <% end %>
-    
-    <% if flash[:error] %>
-        <div class="alert alert-error">
-            <%= flash[:error] %>
-        </div>
+<div class="page-shell">
+  <div class="scanlines"></div>
+  <div class="grid-background"></div>
+  <div class="page-content">
+    <header class="section-title">Custom Seeds (<%= @seeds.count %>)</header>
+
+    <% if flash[:success] %>
+      <div class="alert-message alert-message--success"><%= flash[:success] %></div>
     <% end %>
 
-    <div class="seeds-header">
-        <h1>Custom Seeds</h1>
-        <p class="seeds-count"><%= @seeds.count %> seed<%= 's' if @seeds.count != 1 %> available</p>
-    </div>
-   
-    <div class="seeds-grid">
-        <% @seeds.each do |seed| %>
-            <div class="seed-card">
-                <div class="seed-card-header">
-                    <%= link_to custom_seed_path(seed.name), class: "seed-link" do %>
-                        <h3 class="seed-name"><%= seed.name.to_s.humanize %></h3>
-                    <% end %>
-                    <div class="seed-icon">🌱</div>
-                </div>
-                <div class="seed-card-body">
-                    <p class="seed-description"><%= seed.description %></p>
-                    <% if seed.has_parameters? %>
-                        <div class="seed-parameters">
-                            <span class="parameter-count">
-                                <%= pluralize(seed.parameter_names.count, 'parameter') %>
-                            </span>
-                            <div class="parameter-list">
-                                <% seed.parameter_names.each do |param_name| %>
-                                    <span class="parameter-tag">
-                                        <%= param_name.to_s.humanize %>
-                                        <% param_info = seed.parameter_info(param_name) %>
-                                        <% if param_info[:required] %>
-                                            <span class="required">*</span>
-                                        <% end %>
-                                    </span>
-                                <% end %>
-                            </div>
-                        </div>
-                    <% else %>
-                        <div class="no-parameters">
-                            <span class="no-params-text">No parameters required</span>
-                        </div>
-                    <% end %>
-                </div>
-            </div>
-        <% end %>
-    </div>
+    <% if flash[:error] %>
+      <div class="alert-message alert-message--error"><%= flash[:error] %></div>
+    <% end %>
 
     <% if @seeds.empty? %>
-        <div class="empty-state">
-            <div class="empty-icon">🌱</div>
-            <h3>No custom seeds defined</h3>
-            <p>Create your first custom seed to get started.</p>
-        </div>
+      <div class="alert-message alert-message--info">
+        No custom seed files detected. Drop your Ruby seed scripts under <code>db/seeds</code>
+        or configure them via the FactorySeeder DSL.
+      </div>
+    <% else %>
+      <div class="seed-grid">
+        <% @seeds.each do |seed| %>
+          <% parameter_count = seed.parameter_names.count %>
+          <article class="seed-card">
+            <div class="seed-card__header">
+              <div>
+                <div class="seed-card__title"><%= seed.name.to_s.humanize %></div>
+                <div class="factory-card__meta"><%= seed.description %></div>
+              </div>
+              <span class="seed-card__tag"><%= pluralize(parameter_count, 'parameter') %></span>
+            </div>
+
+            <div class="seed-card__description">
+              <% if seed.has_parameters? %>
+                <% seed.parameter_names.each do |param_name| %>
+                  <span class="seed-card__tag"><%= param_name.to_s.humanize %></span>
+                <% end %>
+              <% else %>
+                <span class="seed-card__tag">No parameters</span>
+              <% end %>
+            </div>
+
+            <div class="seed-card__actions">
+              <%= link_to "Inspect & Run", custom_seed_path(seed.name), class: "btn btn-accent" %>
+            </div>
+          </article>
+        <% end %>
+      </div>
     <% end %>
+  </div>
 </div>

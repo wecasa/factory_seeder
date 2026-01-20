@@ -1,23 +1,99 @@
-<div class="container">    
-    <!-- Flash messages -->
+<div class="page-shell">
+  <div class="scanlines"></div>
+  <div class="grid-background"></div>
+  <div class="page-content">
+    <section class="hero">
+      <div class="hero__icon">🛠️</div>
+      <h1 class="hero__title">Factory Seeder</h1>
+      <p class="hero__subtitle">
+        Industrial-grade seed generation that keeps your FactoryBot definitions
+        and custom scripts in sync with production-ready tooling.
+      </p>
+      <div class="hero__flair">
+        <span>FactoryBot</span>
+        <span>|</span>
+        <span>Custom Seeds</span>
+        <span>|</span>
+        <span>Live Logs</span>
+      </div>
+    </section>
+
     <% if flash[:success] %>
-        <div class="alert alert-success">
-            <%= flash[:success] %>
-        </div>
-    <% end %>
-    
-    <% if flash[:error] %>
-        <div class="alert alert-error">
-            <%= flash[:error] %>
-        </div>
-    <% end %>
-    
-    <% if flash[:info] %>
-        <div class="alert alert-info">
-            <%= flash[:info] %>
-        </div>
+      <div class="alert-message alert-message--success">
+        <%= flash[:success] %>
+      </div>
     <% end %>
 
-    <%= link_to "Factories", factory_index_path, class: "btn btn-primary" %>
-    <%= link_to "Custom Seeds", custom_seeds_path, class: "btn btn-primary" %>
+    <% if flash[:error] %>
+      <div class="alert-message alert-message--error">
+        <%= flash[:error] %>
+      </div>
+    <% end %>
+
+    <% if flash[:info] %>
+      <div class="alert-message alert-message--info">
+        <%= flash[:info] %>
+      </div>
+    <% end %>
+
+    <% factories_with_traits = @factories.count { |_, info| info[:traits].present? } %>
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-card__value"><%= @factories.count %></div>
+        <div class="stat-card__label">Loaded Factories</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__value"><%= @seeds_info.count %></div>
+        <div class="stat-card__label">Custom Seeds</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__value"><%= factories_with_traits %></div>
+        <div class="stat-card__label">Factories w/ Traits</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__value">Ready</div>
+        <div class="stat-card__label">System Status</div>
+      </div>
+    </div>
+
+    <div class="mode-grid">
+      <article class="mode-card">
+        <div class="mode-card__header">
+          <span class="mode-card__icon">🏭</span>
+          <h2 class="mode-card__title">Factories</h2>
+        </div>
+        <p class="mode-card__description">
+          Generate Faker data directly from your FactoryBot definitions. Tweak traits,
+          associations, and batch counts before execution.
+        </p>
+        <div class="mode-card__tags">
+          <% @factories.each_key.take(3).each do |name| %>
+            <span class="mode-card__tag"><%= name %></span>
+          <% end %>
+        </div>
+        <div class="mode-card__actions">
+          <%= link_to "Open factories", factory_index_path, class: "btn btn-primary" %>
+        </div>
+      </article>
+
+      <article class="mode-card">
+        <div class="mode-card__header">
+          <span class="mode-card__icon">💾</span>
+          <h2 class="mode-card__title">Custom Seeds</h2>
+        </div>
+        <p class="mode-card__description">
+          Run your bespoke Ruby seed files with the same industrial UI. Logs, progress,
+          and retry actions are available from the execution screen.
+        </p>
+        <div class="mode-card__tags">
+          <% @seeds_info.each_key.take(3).each do |seed| %>
+            <span class="mode-card__tag"><%= seed.to_s.humanize %></span>
+          <% end %>
+        </div>
+        <div class="mode-card__actions">
+          <%= link_to "View seeds", custom_seeds_path, class: "btn btn-accent" %>
+        </div>
+      </article>
+    </div>
+  </div>
 </div>

@@ -1,41 +1,71 @@
-<div class="container">
-    <div class="content">
-        <% if @factories.empty? %>
-            <div class="empty-state">
-                <h3>No factories found</h3>
-                <p>Make sure you have FactoryBot factories in your project.</p>
-                <p>Common locations: <code>spec/factories/</code> or <code>test/factories/</code></p>
+<div class="page-shell">
+  <div class="scanlines"></div>
+  <div class="grid-background"></div>
+  <div class="page-content">
+    <header class="section-title">Available Factories (<%= @factories.count %>)</header>
+
+    <% if flash[:success] %>
+      <div class="alert-message alert-message--success"><%= flash[:success] %></div>
+    <% end %>
+
+    <% if flash[:error] %>
+      <div class="alert-message alert-message--error"><%= flash[:error] %></div>
+    <% end %>
+
+    <% if flash[:info] %>
+      <div class="alert-message alert-message--info"><%= flash[:info] %></div>
+    <% end %>
+
+    <% if @factories.empty? %>
+      <div class="alert-message alert-message--info">
+        No FactoryBot definitions were detected yet. Confirm there are files under
+        <code>spec/factories/</code> or <code>test/factories/</code>, then refresh.
+      </div>
+    <% else %>
+      <div class="factories-grid">
+        <% @factories.each do |name, info| %>
+          <% traits = Array(info[:traits]) %>
+          <% associations = Array(info[:associations]) %>
+          <article class="factory-card">
+            <div class="factory-card__header">
+              <div>
+                <div class="factory-card__title"><%= name %></div>
+                <div class="factory-card__meta"><%= info[:class_name] %></div>
+              </div>
+              <div class="factory-card__label">Live</div>
             </div>
-        <% else %>
-            <h2>Available Factories (<%= @factories.count %>)</h2>
-            <div class="factories-grid">
-                <% @factories.each do |name, info| %>
-                    <div class="factory-card">
-                        <div class="factory-name"><%= name %></div>
-                        <div class="factory-class"><%= info[:class_name] %></div>
-                        
-                        <% if info[:traits].any? %>
-                            <div class="factory-traits">
-                                <strong>Traits:</strong><br>
-                                <% info[:traits].each do |trait| %>
-                                    <span class="trait-tag"><%= trait %></span>
-                                <% end %>
-                            </div>
-                        <% end %>
-                        
-                        <% if info[:associations].any? %>
-                            <div class="factory-associations">
-                                <strong>Associations:</strong> <%= info[:associations].map { |a| a[:name] }.join(', ') %>
-                            </div>
-                        <% end %>
-                        
-                        <div class="factory-actions">
-                            <%= link_to "Generate Seeds", factory_path(name), class: "btn btn-primary" %>
-                            <%= link_to "Preview", preview_factory_from_dashboard_path(name), class: "btn btn-secondary" %>
-                        </div>
-                    </div>
+
+            <% if traits.any? %>
+              <div class="factory-card__badges">
+                <% traits.first(4).each do |trait| %>
+                  <span class="trait-pill"><%= trait %></span>
                 <% end %>
+                <% if traits.size > 4 %>
+                  <span class="trait-pill">+<%= traits.size - 4 %> more</span>
+                <% end %>
+              </div>
+            <% end %>
+
+            <% if associations.any? %>
+              <div class="factory-card__badges">
+                <% associations.each do |assoc| %>
+                  <span class="assoc-pill"><%= assoc[:name] %></span>
+                <% end %>
+              </div>
+            <% end %>
+
+            <div class="factory-card__description">
+              Rendered class: <%= info[:class_name] %><br>
+              Traits: <%= traits.present? ? traits.join(', ') : 'none' %><br>
+              Associations: <%= associations.present? ? associations.count : 0 %>
             </div>
+
+            <div class="factory-card__footer">
+              <%= link_to "Generate Seeds", factory_path(name), class: "btn btn-primary w-full" %>
+            </div>
+          </article>
         <% end %>
-    </div>
+      </div>
+    <% end %>
+  </div>
 </div>
