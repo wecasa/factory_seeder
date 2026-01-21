@@ -520,6 +520,10 @@ body {
   margin-right: 0.5rem;
 }
 
+.console-log--info {
+  color: var(--foreground);
+}
+
 .console-log--success {
   color: var(--success);
 }
@@ -529,6 +533,10 @@ body {
 }
 
 .console-log--danger {
+  color: var(--destructive);
+}
+
+.console-log--error {
   color: var(--destructive);
 }
 

@@ -80,9 +80,27 @@
           <span class="factory-card__meta">Live logs will appear once a job runs.</span>
         </div>
         <div class="console__body">
-          <div class="console-log">
-            <span>[ --:--:-- ]</span>Awaiting execution trigger...
-          </div>
+          <% logs = @execution_logs || [] %>
+              <% if logs.any? %>
+                <div class="space-y-1">
+                  <% logs.each do |log| %>
+                    <% entry = log.is_a?(Hash) ? log : log.to_h %>
+                    <% message = entry['message'] || entry[:message] || entry.to_s %>
+                    <% level = (entry['level'] || entry[:level] || :info).to_s %>
+                    <% timestamp_value = entry['timestamp'] || entry[:timestamp] || Time.now %>
+                    <% timestamp =
+                      timestamp_value.respond_to?(:strftime) ? timestamp_value.strftime('%H:%M:%S') : timestamp_value.to_s %>
+                    <div class="console-log console-log--<%= level %>">
+                      <span class="text-muted-foreground">[<%= timestamp %>]</span>
+                      <span><%= message %></span>
+                    </div>
+                  <% end %>
+                </div>
+              <% else %>
+                <div class="console-log">
+                  <span>[ --:--:-- ]</span>Awaiting execution trigger...
+                </div>
+              <% end %>
         </div>
       </section>
     </div>
