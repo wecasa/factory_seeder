@@ -9,6 +9,7 @@ module FactorySeeder
         return if @loader
 
         @loader = Zeitwerk::Loader.new
+        @loader.inflector.inflect('cli' => 'CLI')
         @loader.push_dir(File.expand_path(__dir__), namespace: FactorySeeder)
         @loader.enable_reloading
         @loader.setup
