@@ -10,6 +10,7 @@ module FactorySeeder
       @factory_name = params[:name]
       @factories = FactorySeeder.scan_loaded_factories
       @factory = @factories[@factory_name]
+      @execution_logs = session.delete(:factory_seeder_execution_logs) || []
 
       return if @factory
 
@@ -25,6 +26,7 @@ module FactorySeeder
       begin
         generator = SeedGenerator.new
         result = generator.generate(factory_name, count, traits, generate_params[:attributes].to_h.compact_blank)
+        session[:factory_seeder_execution_logs] = result[:logs] if result[:logs]&.any?
 
         if result[:errors].any?
           flash[:error] = "Error generating seeds: #{result[:errors].join(', ')}"

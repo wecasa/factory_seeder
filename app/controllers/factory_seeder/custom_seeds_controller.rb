@@ -14,6 +14,7 @@ module FactorySeeder
         return
       end
       @seed_name = @seed.name
+      @execution_logs = session.delete(:factory_seeder_execution_logs) || []
     end
 
     def create
@@ -27,6 +28,7 @@ module FactorySeeder
       else
         flash[:error] = result[:message]
       end
+      session[:factory_seeder_execution_logs] = result[:logs] if result[:logs]&.any?
       redirect_to custom_seed_path(seed_name)
     end
 
