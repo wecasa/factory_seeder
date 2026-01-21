@@ -77,6 +77,50 @@ module FactorySeeder
       seed_manager.run(name, **kwargs)
     end
 
+    def execution_logs
+      Thread.current[:factory_seeder_execution_logs] ||= []
+    end
+
+    def clear_execution_logs!
+      Thread.current[:factory_seeder_execution_logs] = []
+    end
+
+    def log(message, level: :info, **meta)
+      entry = {
+        message: message.to_s,
+        level: level.to_sym,
+        timestamp: Time.now,
+        meta: meta
+      }
+      execution_logs << entry
+      entry
+    end
+
+    %i[info success warning error].each do |level_name|
+      define_method("log_#{level_name}") do |message, **meta|
+        log(message, level: level_name, **meta)
+      end
+    end
+
+    def normalized_logs(log_entries)
+      Array(log_entries).map do |log_entry|
+        timestamp = log_entry[:timestamp]
+        formatted_timestamp =
+          if timestamp.respond_to?(:iso8601)
+            timestamp.iso8601
+          else
+            timestamp.to_s
+          end
+
+        {
+          'message' => log_entry[:message].to_s,
+          'level' => log_entry[:level].to_s,
+          'timestamp' => formatted_timestamp,
+          'meta' => log_entry[:meta] || {}
+        }
+      end
+    end
+
     def run(*names)
       seeder.run(*names)
     end
