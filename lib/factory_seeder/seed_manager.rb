@@ -42,20 +42,31 @@ module FactorySeeder
       seed = find(name)
       raise ArgumentError, "Seed '#{name}' not found" unless seed
 
+      FactorySeeder.clear_execution_logs!
+      FactorySeeder.log_info("Running custom seed '#{name}'", kwargs: kwargs)
+
       begin
         result = seed.call(**kwargs)
+        FactorySeeder.log_success("Seed '#{name}' completed", result: result)
+        logs = FactorySeeder.normalized_logs(FactorySeeder.execution_logs)
+        FactorySeeder.clear_execution_logs!
         {
           success: true,
           seed_name: name,
           result: result,
-          message: "Seed '#{name}' executed successfully"
+          message: "Seed '#{name}' executed successfully",
+          logs: logs
         }
       rescue StandardError => e
+        FactorySeeder.log("Seed '#{name}' failed: #{e.message}", level: :error)
+        logs = FactorySeeder.normalized_logs(FactorySeeder.execution_logs)
+        FactorySeeder.clear_execution_logs!
         {
           success: false,
           seed_name: name,
           error: e.message,
-          message: "Seed '#{name}' failed: #{e.message}"
+          message: "Seed '#{name}' failed: #{e.message}",
+          logs: logs
         }
       end
     end
