@@ -11,12 +11,13 @@ module FactorySeeder
         @loader = Zeitwerk::Loader.new
         @loader.inflector.inflect('cli' => 'CLI')
         @loader.push_dir(File.expand_path(__dir__), namespace: FactorySeeder)
+        @loader.ignore("#{__dir__}/version.rb")
         @loader.enable_reloading
         @loader.setup
       end
 
       def reload!
-        return unless @loader && @loader.reloading_enabled?
+        return unless @loader&.reloading_enabled?
 
         @loader.reload
       end
