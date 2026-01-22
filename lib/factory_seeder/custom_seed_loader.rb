@@ -19,7 +19,7 @@ module FactorySeeder
       def seed_files
         return [] unless seeds_directory
 
-        Dir.glob(seeds_directory.join('*.rb'))
+        Dir.glob(seeds_directory.join('**/*.rb'))
       end
 
       def seeds_directory
