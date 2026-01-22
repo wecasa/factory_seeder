@@ -10,7 +10,7 @@ module FactorySeeder
       @factory_name = params[:name]
       @factories = FactorySeeder.scan_loaded_factories
       @factory = @factories[@factory_name]
-      @execution_logs = session.delete(:factory_seeder_execution_logs) || []
+      @execution_logs = []
 
       return if @factory
 
@@ -19,27 +19,29 @@ module FactorySeeder
     end
 
     def generate
-      factory_name = params[:name]
+      @factory_name = params[:name]
       count = (params[:count] || 1).to_i
       traits = parse_traits(params[:selected_traits])
 
+      @factories = FactorySeeder.scan_loaded_factories
+      @factory = @factories[@factory_name]
+
       begin
         generator = SeedGenerator.new
-        result = generator.generate(factory_name, count, traits, generate_params[:attributes].to_h.compact_blank)
-        session[:factory_seeder_execution_logs] = result[:logs] if result[:logs]&.any?
+        result = generator.generate(@factory_name, count, traits, generate_params[:attributes].to_h.compact_blank)
+        @execution_logs = result[:logs] || []
 
         if result[:errors].any?
-          flash[:error] = "Error generating seeds: #{result[:errors].join(', ')}"
+          flash.now[:error] = "Error generating seeds: #{result[:errors].join(', ')}"
         else
-          flash[:success] = "Successfully generated #{result[:count]} #{factory_name} records!, #{result[:generated_records].map do |record|
-            record[:record].inspect
-          end.join(', ')} records generated"
+          flash.now[:success] = "Successfully generated #{result[:count]} #{@factory_name} records"
         end
-        redirect_to factory_path(factory_name)
       rescue StandardError => e
-        flash[:error] = "Error generating seeds: #{e.message}"
-        redirect_to factory_path(factory_name)
+        flash.now[:error] = "Error generating seeds: #{e.message}"
+        @execution_logs = []
       end
+
+      render :show
     end
 
     private

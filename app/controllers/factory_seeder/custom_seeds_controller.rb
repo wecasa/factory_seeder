@@ -14,22 +14,30 @@ module FactorySeeder
         return
       end
       @seed_name = @seed.name
-      @execution_logs = session.delete(:factory_seeder_execution_logs) || []
+      @execution_logs = []
     end
 
     def create
-      seed_name = params[:name]
-      attributes = safe_attributes_params
+      @seed_name = params[:name]
+      @seed = FactorySeeder.find_custom_seed(@seed_name)
 
-      result = FactorySeeder.run_custom_seed(seed_name, **attributes)
+      if @seed.nil?
+        flash[:error] = "Seed '#{@seed_name}' not found"
+        redirect_to custom_seeds_path
+        return
+      end
+
+      attributes = safe_attributes_params
+      result = FactorySeeder.run_custom_seed(@seed_name, **attributes)
+      @execution_logs = result[:logs] || []
 
       if result[:success]
-        flash[:success] = result[:message]
+        flash.now[:success] = result[:message]
       else
-        flash[:error] = result[:message]
+        flash.now[:error] = result[:message]
       end
-      session[:factory_seeder_execution_logs] = result[:logs] if result[:logs]&.any?
-      redirect_to custom_seed_path(seed_name)
+
+      render :show
     end
 
     def new
