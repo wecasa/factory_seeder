@@ -39,9 +39,8 @@ bundle exec factory_seeder init
 ```
 
 This creates:
-- `config/factory_seeder.rb` - Configuration file
+- `config/initializers/factory_seeder.rb` - Configuration file
 - `db/seeds_factory_seeder.rb` - Sample seeds file
-- `db/factory_seeds/` - Directory for custom seed definitions
 
 ### 2. List Available Factories
 
@@ -197,6 +196,18 @@ factory_seeder web --port=4567
 
 # Initialize configuration
 factory_seeder init
+
+# List available custom seeds
+factory_seeder seeds --list
+
+# Run a specific custom seed
+factory_seeder seeds development
+
+# Run all custom seeds
+factory_seeder seeds --all
+
+# Preview what would be generated (dry run)
+factory_seeder seeds development --dry_run
 ```
 
 ## Configuration
