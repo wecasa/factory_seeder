@@ -1,12 +1,9 @@
 # frozen_string_literal: true
 
+# Core dependencies (always required)
 require 'factory_bot'
-require 'thor'
-require 'sinatra'
-require 'sinatra/reloader'
 require 'json'
-require 'faker'
-require 'zeitwerk'
+require 'active_support/core_ext/string/inflections'
 
 require_relative 'factory_seeder/version'
 
@@ -207,4 +204,5 @@ end
 require_relative 'factory_seeder/loader'
 FactorySeeder::Loader.setup
 
-require_relative 'factory_seeder/engine'
+# Load Rails Engine only when Rails is available
+require_relative 'factory_seeder/engine' if defined?(Rails::Engine)

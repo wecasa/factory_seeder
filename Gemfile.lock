@@ -2,14 +2,11 @@ PATH
   remote: .
   specs:
     factory_seeder (0.1.0)
-      activesupport (>= 6.0)
-      factory_bot (~> 6.0)
-      faker (~> 3.0)
-      sinatra (>= 2.0, < 4.0)
-      sinatra-contrib (>= 2.0, < 4.0)
-      thor (~> 1.0)
-      webrick (~> 1.7)
-      zeitwerk (~> 2.6)
+      activesupport (>= 6.0, < 9.0)
+      factory_bot (>= 5.0, < 7.0)
+      sinatra (>= 2.0, < 5.0)
+      sinatra-contrib (>= 2.0, < 5.0)
+      thor (>= 1.0, < 3.0)
 
 GEM
   remote: https://rubygems.org/
@@ -38,8 +35,6 @@ GEM
     drb (2.2.3)
     factory_bot (6.5.5)
       activesupport (>= 6.1.0)
-    faker (3.5.2)
-      i18n (>= 1.8.11, < 2)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     json (2.13.2)
@@ -116,7 +111,6 @@ GEM
     unicode-emoji (4.0.4)
     uri (1.1.1)
     webrick (1.9.1)
-    zeitwerk (2.7.4)
 
 PLATFORMS
   arm64-darwin-23
@@ -128,6 +122,7 @@ DEPENDENCIES
   rake (~> 13.0)
   rspec (~> 3.0)
   rubocop (~> 1.0)
+  webrick (~> 1.7)
 
 BUNDLED WITH
    2.5.14

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'sinatra/base'
+require 'sinatra/reloader'
+
 module FactorySeeder
   class WebInterface < Sinatra::Base
     configure do

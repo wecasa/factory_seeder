@@ -23,20 +23,23 @@ Gem::Specification.new do |spec|
   spec.executables = ['factory_seeder']
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'activesupport', '>= 6.0'
-  spec.add_dependency 'factory_bot', '~> 6.0'
-  spec.add_dependency 'faker', '~> 3.0'
-  spec.add_dependency 'sinatra', '>= 2.0', '< 4.0'
-  spec.add_dependency 'sinatra-contrib', '>= 2.0', '< 4.0'
-  spec.add_dependency 'thor', '~> 1.0'
-  spec.add_dependency 'webrick', '~> 1.7'
-  spec.add_dependency 'zeitwerk', '~> 2.6'
+  # === Core dependencies (always required) ===
+  spec.add_dependency 'activesupport', '>= 6.0', '< 9.0'
+  spec.add_dependency 'factory_bot', '>= 5.0', '< 7.0'
+  spec.add_dependency 'zeitwerk', '>= 2.5', '< 3.0'
 
-  # NOTE: @hotwired/stimulus et @hotwired/turbo-rails sont des packages npm, pas des gems Ruby
-  # Ils ne sont pas nécessaires pour ce gem Ruby
+  # === Optional dependencies (loaded on demand) ===
+  # CLI: thor is required only when using the command-line interface
+  # Web UI: sinatra is required only when using the web interface
+  # These are soft dependencies - the gem works without them if you only use the Ruby API
+  spec.add_dependency 'thor', '>= 1.0', '< 3.0'
+  spec.add_dependency 'sinatra', '>= 2.0', '< 5.0'
+  spec.add_dependency 'sinatra-contrib', '>= 2.0', '< 5.0'
 
+  # Development dependencies
   spec.add_development_dependency 'pry', '~> 0.14'
   spec.add_development_dependency 'rake', '~> 13.0'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rubocop', '~> 1.0'
+  spec.add_development_dependency 'webrick', '~> 1.7' # Default server for Sinatra in dev
 end
