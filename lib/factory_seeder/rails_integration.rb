@@ -5,8 +5,10 @@ module FactorySeeder
     def self.setup
       return unless defined?(Rails)
 
-      # Ensure models are loaded before scanning factories
-      Rails.application.eager_load! if Rails.respond_to?(:application) && Rails.application&.config&.eager_load
+      # Force eager loading when Rails hasn't done it (development/test with lazy loading)
+      if Rails.respond_to?(:application) && Rails.application && !Rails.application.config.eager_load
+        Rails.application.eager_load!
+      end
 
       # Add Rails-specific factory paths
       FactorySeeder.configuration.factory_paths << 'spec/factories' if Dir.exist?('spec/factories')
@@ -17,28 +19,11 @@ module FactorySeeder
     end
 
     def self.load_models
-      return unless defined?(Rails)
+      return unless defined?(Rails) && Rails.respond_to?(:application) && Rails.application
+      return if Rails.application.config.eager_load
 
-      # Load all models
-      if Rails.respond_to?(:application) && Rails.application&.config&.eager_load
-        Rails.application.eager_load!
-      elsif Rails.respond_to?(:root)
-        # Alternative: manually load models if eager_load is disabled
-        Dir.glob(Rails.root.join('app/models/**/*.rb')).each do |file|
-          require_dependency file
-        rescue NameError => e
-          # Skip models that can't be loaded due to missing dependencies
-          puts "⚠️  Could not load model #{file}: #{e.message}" if FactorySeeder.configuration.verbose
-        rescue StandardError => e
-          puts "⚠️  Error loading model #{file}: #{e.message}" if FactorySeeder.configuration.verbose
-        end
-      end
-
-      # Ensure all constants are loaded
-      return unless Rails.respond_to?(:application) && Rails.application
-
-      # Force reload of all models to ensure associations are properly loaded
-      Rails.application.eager_load! if Rails.application.config.eager_load
+      # Force eager loading when Rails hasn't done it (development/test with lazy loading)
+      Rails.application.eager_load!
     end
   end
 end

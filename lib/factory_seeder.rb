@@ -23,6 +23,7 @@ module FactorySeeder
 
     def reload!
       Loader.reload!
+      RailsIntegration.load_models
       CustomSeedLoader.reload!
     end
 
