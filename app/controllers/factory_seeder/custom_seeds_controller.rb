@@ -15,29 +15,35 @@ module FactorySeeder
       end
       @seed_name = @seed.name
       @execution_logs = []
+
+      # Retrieve logs from temporary storage if available (PRG pattern)
+      if params[:log_id].present?
+        stored = ExecutionLogStore.retrieve(params[:log_id])
+        if stored
+          @execution_logs = stored[:logs] || []
+          flash.now[stored[:flash_type]] = stored[:flash_message] if stored[:flash_type]
+        end
+      end
     end
 
     def create
-      @seed_name = params[:name]
-      @seed = FactorySeeder.find_custom_seed(@seed_name)
+      seed_name = params[:name]
+      seed = FactorySeeder.find_custom_seed(seed_name)
 
-      if @seed.nil?
-        flash[:error] = "Seed '#{@seed_name}' not found"
+      if seed.nil?
+        flash[:error] = "Seed '#{seed_name}' not found"
         redirect_to custom_seeds_path
         return
       end
 
       attributes = safe_attributes_params
-      result = FactorySeeder.run_custom_seed(@seed_name, **attributes)
-      @execution_logs = result[:logs] || []
+      result = FactorySeeder.run_custom_seed(seed_name, **attributes)
+      logs = result[:logs] || []
 
-      if result[:success]
-        flash.now[:success] = result[:message]
-      else
-        flash.now[:error] = result[:message]
-      end
+      flash_type = result[:success] ? :success : :error
+      log_id = ExecutionLogStore.store(logs, flash_type: flash_type, flash_message: result[:message])
 
-      render :show
+      redirect_to custom_seed_path(seed_name, log_id: log_id)
     end
 
     def new

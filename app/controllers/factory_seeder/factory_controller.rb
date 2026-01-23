@@ -12,6 +12,15 @@ module FactorySeeder
       @factory = @factories[@factory_name]
       @execution_logs = []
 
+      # Retrieve logs from temporary storage if available (PRG pattern)
+      if params[:log_id].present?
+        stored = ExecutionLogStore.retrieve(params[:log_id])
+        if stored
+          @execution_logs = stored[:logs] || []
+          flash.now[stored[:flash_type]] = stored[:flash_message] if stored[:flash_type]
+        end
+      end
+
       return if @factory
 
       redirect_to root_path, alert: "Factory '#{@factory_name}' not found"
@@ -19,29 +28,27 @@ module FactorySeeder
     end
 
     def generate
-      @factory_name = params[:name]
+      factory_name = params[:name]
       count = (params[:count] || 1).to_i
       traits = parse_traits(params[:selected_traits])
 
-      @factories = FactorySeeder.scan_loaded_factories
-      @factory = @factories[@factory_name]
-
       begin
         generator = SeedGenerator.new
-        result = generator.generate(@factory_name, count, traits, generate_params[:attributes].to_h.compact_blank)
-        @execution_logs = result[:logs] || []
+        result = generator.generate(factory_name, count, traits, generate_params[:attributes].to_h.compact_blank)
+        logs = result[:logs] || []
 
         if result[:errors].any?
-          flash.now[:error] = "Error generating seeds: #{result[:errors].join(', ')}"
+          log_id = ExecutionLogStore.store(logs, flash_type: :error,
+                                                 flash_message: "Error generating seeds: #{result[:errors].join(', ')}")
         else
-          flash.now[:success] = "Successfully generated #{result[:count]} #{@factory_name} records"
+          log_id = ExecutionLogStore.store(logs, flash_type: :success,
+                                                 flash_message: "Successfully generated #{result[:count]} #{factory_name} records")
         end
       rescue StandardError => e
-        flash.now[:error] = "Error generating seeds: #{e.message}"
-        @execution_logs = []
+        log_id = ExecutionLogStore.store([], flash_type: :error, flash_message: "Error generating seeds: #{e.message}")
       end
 
-      render :show
+      redirect_to factory_path(factory_name, log_id: log_id)
     end
 
     private
