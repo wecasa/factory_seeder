@@ -2,16 +2,15 @@ name: Release gem
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-main
   cancel-in-progress: false
 
 jobs:
-  push:
-    name: Build and push gem to RubyGems
+  release:
+    name: Tag and publish to RubyGems
     runs-on: ubuntu-latest
 
     permissions:
@@ -21,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          persist-credentials: false
+          fetch-depth: 0
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -29,17 +28,51 @@ jobs:
           ruby-version: '3.3'
           bundler-cache: true
 
-      - name: Verify tag matches gemspec version
+      - name: Check version
+        id: check
         run: |
-          tag="${GITHUB_REF_NAME#v}"
-          gem_version=$(ruby -Ilib -r factory_seeder/version -e 'puts FactorySeeder::VERSION')
-          if [ "$tag" != "$gem_version" ]; then
-            echo "::error::Tag v$tag does not match gemspec version $gem_version"
-            exit 1
+          version=$(ruby -Ilib -r factory_seeder/version -e 'puts FactorySeeder::VERSION')
+          if git rev-parse "v$version" >/dev/null 2>&1; then
+            echo "Version $version already tagged - nothing to release"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New version detected: $version"
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "version=$version" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run specs
+        if: steps.check.outputs.release == 'true'
         run: bundle exec rake
 
-      - name: Release gem
-        uses: rubygems/release-gem@v1
+      - name: Create and push tag
+        if: steps.check.outputs.release == 'true'
+        run: |
+          version="${{ steps.check.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$version" -m "Release v$version"
+          git push origin "v$version"
+
+      - name: Configure RubyGems OIDC
+        if: steps.check.outputs.release == 'true'
+        uses: rubygems/configure-rubygems-credentials@main
+
+      - name: Build gem
+        if: steps.check.outputs.release == 'true'
+        run: gem build factory_seeder.gemspec
+
+      - name: Push gem to RubyGems
+        if: steps.check.outputs.release == 'true'
+        run: gem push factory_seeder-${{ steps.check.outputs.version }}.gem
+
+      - name: Create GitHub release
+        if: steps.check.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ steps.check.outputs.version }}"
+          gh release create "v$version" \
+            --title "v$version" \
+            --generate-notes \
+            "factory_seeder-$version.gem"

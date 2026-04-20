@@ -375,7 +375,7 @@ end
 ### Setup
 
 ```bash
-git clone https://github.com/factoryseeder/factory_seeder.git
+git clone https://github.com/wecasa/factory_seeder.git
 cd factory_seeder
 bundle install
 ```
@@ -392,6 +392,50 @@ bundle exec rspec
 gem build factory_seeder.gemspec
 gem install factory_seeder-0.1.0.gem
 ```
+
+## Release Process
+
+The gem is published to [RubyGems](https://rubygems.org/gems/factory_seeder) automatically from CI using [Trusted Publishing (OIDC)](https://guides.rubygems.org/trusted-publishing/). No API key is stored in the repo.
+
+### How it works
+
+- `main` is protected: every change lands via a pull request approved by a Wecasa engineer.
+- The release workflow (`.github/workflows/release.yml`) runs on every merge to `main`.
+- If `lib/factory_seeder/version.rb` has been bumped (i.e. no git tag matches the current version yet), the workflow:
+  1. Runs the specs.
+  2. Tags the merge commit `vX.Y.Z`.
+  3. Builds the gem and pushes it to RubyGems via OIDC.
+  4. Creates a GitHub Release with auto-generated notes and attaches the `.gem` file.
+- If the version on `main` already has a tag, the workflow is a no-op.
+
+### How to ship a new version
+
+1. Open a PR from a feature branch.
+2. In the same PR, bump `lib/factory_seeder/version.rb` following [semver](https://semver.org/):
+   - patch (`0.1.0` -> `0.1.1`) - bug fix, no API change
+   - minor (`0.1.0` -> `0.2.0`) - new feature, backward compatible
+   - major (`0.1.0` -> `1.0.0`) - breaking change
+3. Add a corresponding entry at the top of `CHANGELOG.md`.
+4. Get the PR approved by a Wecasa engineer (branch protection enforces this).
+5. Merge. The release workflow tags the commit and publishes the gem within a minute or two.
+
+### Ship without releasing
+
+If your PR does not change the public API (docs, internal refactor, CI tweak), leave `version.rb` untouched. The workflow will detect that the version already has a tag and skip the release step. No manual step needed.
+
+### Gem ownership
+
+The gem is owned by the `devops@wecasa.fr` RubyGems service account (MFA enabled). Human maintainers are added as co-owners via:
+
+```bash
+gem owner factory_seeder -a <email>
+```
+
+Trusted Publishing is configured at https://rubygems.org/profile/oidc/pending_trusted_publishers (or the gem page once a version is published) with:
+
+- Repository: `wecasa/factory_seeder`
+- Workflow filename: `release.yml`
+- Environment: (empty)
 
 ## Architecture
 
