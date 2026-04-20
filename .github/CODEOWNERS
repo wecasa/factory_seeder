@@ -1,8 +1,5 @@
 # Code owners for factory_seeder.
 # Any PR to main require review from a code owner when branch protection
 # is configured with "Require review from Code Owners".
-#
-# Replace the team slug below with your actual Wecasa engineering team.
-# Alternative: list individual GitHub usernames, e.g. @beeleethebee @alice
 
-*       @wecasa/engineers
+*       @PapaLoup
