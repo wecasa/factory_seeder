@@ -7,6 +7,7 @@ PATH
       sinatra (>= 2.0, < 5.0)
       sinatra-contrib (>= 2.0, < 5.0)
       thor (>= 1.0, < 3.0)
+      zeitwerk (>= 2.5, < 3.0)
 
 GEM
   remote: https://rubygems.org/
@@ -111,6 +112,7 @@ GEM
     unicode-emoji (4.0.4)
     uri (1.1.1)
     webrick (1.9.1)
+    zeitwerk (2.7.5)
 
 PLATFORMS
   arm64-darwin-23
