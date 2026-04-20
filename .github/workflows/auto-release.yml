@@ -1,0 +1,85 @@
+name: Auto-tag on merge
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Bump version and tag
+    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[skip release]')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Decide next version
+        id: decide
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          current=$(ruby -Ilib -r factory_seeder/version -e 'puts FactorySeeder::VERSION')
+          last=$(git tag --list 'v*' --sort=-v:refname | head -1 | sed 's/^v//')
+
+          if [ -n "$last" ] && [ "$current" != "$last" ]; then
+            new="$current"
+            bumped=false
+            echo "Manual version bump detected: $last -> $current"
+          else
+            case "$COMMIT_MSG" in
+              *"[release:major]"*) level=major ;;
+              *"[release:minor]"*) level=minor ;;
+              *) level=patch ;;
+            esac
+            IFS=. read -r M m p <<<"$current"
+            case "$level" in
+              major) M=$((M+1)); m=0; p=0 ;;
+              minor) m=$((m+1)); p=0 ;;
+              patch) p=$((p+1)) ;;
+            esac
+            new="$M.$m.$p"
+            bumped=true
+            echo "Auto-bumping ($level): $current -> $new"
+          fi
+
+          if git rev-parse "v$new" >/dev/null 2>&1; then
+            echo "::error::Tag v$new already exists"
+            exit 1
+          fi
+
+          echo "new=$new" >> "$GITHUB_OUTPUT"
+          echo "bumped=$bumped" >> "$GITHUB_OUTPUT"
+
+      - name: Bump version file and commit
+        if: steps.decide.outputs.bumped == 'true'
+        run: |
+          new="${{ steps.decide.outputs.new }}"
+          sed -i "s/VERSION = '.*'/VERSION = '$new'/" lib/factory_seeder/version.rb
+          bundle lock --update=factory_seeder
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/factory_seeder/version.rb Gemfile.lock
+          git commit -m "Bump version to $new [skip release]"
+          git push origin main
+
+      - name: Tag and push
+        run: |
+          new="${{ steps.decide.outputs.new }}"
+          git tag -a "v$new" -m "Release v$new"
+          git push origin "v$new"

@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = 'FactorySeeder provides an intuitive interface to generate database seeds using your existing FactoryBot factories, traits, and associations.'
   spec.homepage = 'https://github.com/wecasa/factory_seeder'
   spec.license = 'MIT'
-  spec.required_ruby_version = '>= 2.7.0'
+  spec.required_ruby_version = '>= 3.2.0'
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = "#{spec.homepage}/tree/main"

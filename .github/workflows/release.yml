@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   push:
     name: Build and push gem to RubyGems
@@ -24,6 +28,18 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
+
+      - name: Verify tag matches gemspec version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          gem_version=$(ruby -Ilib -r factory_seeder/version -e 'puts FactorySeeder::VERSION')
+          if [ "$tag" != "$gem_version" ]; then
+            echo "::error::Tag v$tag does not match gemspec version $gem_version"
+            exit 1
+          fi
+
+      - name: Run specs
+        run: bundle exec rake
 
       - name: Release gem
         uses: rubygems/release-gem@v1

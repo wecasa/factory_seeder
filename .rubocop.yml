@@ -1,0 +1,15 @@
+inherit_from: .rubocop_todo.yml
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.2
+  SuggestExtensions: false
+  Exclude:
+    - 'bin/**/*'
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+    - 'example_usage.rb'
+    - 'simple_example.rb'
+
+Style/Documentation:
+  Enabled: false
