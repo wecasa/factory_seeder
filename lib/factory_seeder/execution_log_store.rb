@@ -11,7 +11,7 @@ module FactorySeeder
   # setup (Puma cluster, multiple ECS tasks).
   class ExecutionLogStore
     EXPIRY_TIME = 300 # 5 minutes
-    CACHE_KEY_PREFIX = "factory_seeder/execution_log_store"
+    CACHE_KEY_PREFIX = 'factory_seeder/execution_log_store'
 
     class << self
       def store(logs, flash_type: nil, flash_message: nil)
@@ -22,14 +22,7 @@ module FactorySeeder
           flash_message: flash_message,
           created_at: Time.now
         }
-
-        if rails_cache_available?
-          Rails.cache.write(cache_key(id), data, expires_in: EXPIRY_TIME)
-        else
-          cleanup_expired
-          memory_storage[id] = data
-        end
-
+        write(id, data)
         id
       end
 
@@ -53,6 +46,15 @@ module FactorySeeder
       end
 
       private
+
+      def write(id, data)
+        if rails_cache_available?
+          Rails.cache.write(cache_key(id), data, expires_in: EXPIRY_TIME)
+        else
+          cleanup_expired
+          memory_storage[id] = data
+        end
+      end
 
       def memory_storage
         @memory_storage ||= {}
