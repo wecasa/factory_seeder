@@ -284,6 +284,19 @@ body {
   transform: translateY(-2px);
 }
 
+.btn:disabled,
+.btn-primary:disabled,
+.btn-accent:disabled,
+.btn-destructive:disabled,
+.btn--running {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: grayscale(0.6);
+  box-shadow: none;
+  pointer-events: none;
+  transform: none;
+}
+
 .section-title {
   font-size: 1.3rem;
   letter-spacing: 0.15em;

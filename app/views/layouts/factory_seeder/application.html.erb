@@ -21,5 +21,36 @@
       <%= link_to "Dashboard", root_path, class: "app-header__link" %>
     </header>
     <%= yield %>
+
+    <script>
+      (function () {
+        document.addEventListener('submit', function (event) {
+          var form = event.target;
+          if (!form || form.tagName !== 'FORM') return;
+
+          var submitButton = form.querySelector('input[type=submit], button[type=submit]');
+          if (!submitButton) return;
+
+          if (submitButton.dataset.fsRunning === 'true') {
+            event.preventDefault();
+            return;
+          }
+
+          submitButton.dataset.fsRunning = 'true';
+          var runningLabel = submitButton.getAttribute('data-running-label') || 'Running…';
+
+          if (submitButton.tagName === 'INPUT') {
+            submitButton.dataset.fsOriginalLabel = submitButton.value;
+            submitButton.value = runningLabel;
+          } else {
+            submitButton.dataset.fsOriginalLabel = submitButton.textContent;
+            submitButton.textContent = runningLabel;
+          }
+
+          submitButton.disabled = true;
+          submitButton.classList.add('btn--running');
+        });
+      })();
+    </script>
   </body>
 </html>
