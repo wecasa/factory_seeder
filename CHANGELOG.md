@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Custom Seeds Features
 - **SeedBuilder DSL**: Fluent interface for defining seeds with parameter validation
-- **Parameter Types**: Support for integer, boolean, symbol, string, and array parameters
+- **Parameter Types**: Support for integer, boolean, symbol, string, array, and file parameters
 - **Parameter Validation**: Type checking, min/max values, allowed values, and required fields
 - **Metadata Support**: Descriptions and documentation for seeds and parameters
 - **Web UI for Custom Seeds**: Dynamic forms based on parameter definitions

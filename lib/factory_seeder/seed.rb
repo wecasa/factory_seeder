@@ -80,6 +80,8 @@ module FactorySeeder
         raise ArgumentError, "Parameter '#{key}' must be a symbol" unless value.is_a?(Symbol)
       when :array
         raise ArgumentError, "Parameter '#{key}' must be an array" unless value.is_a?(Array)
+      when :file
+        raise ArgumentError, "Parameter '#{key}' must be an uploaded file" unless value.respond_to?(:read)
       end
     end
 

@@ -59,8 +59,8 @@ module FactorySeeder
           raise ArgumentError,
                 'min, max, and allowed_values are not valid for boolean type'
         end
-      when :array
-        raise ArgumentError, 'min, max, and allowed_values are not valid for array type' if min || max || allowed_values
+      when :array, :file
+        raise ArgumentError, "min, max, and allowed_values are not valid for #{type} type" if min || max || allowed_values
       end
     end
   end
