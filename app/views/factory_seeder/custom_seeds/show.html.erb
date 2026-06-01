@@ -33,7 +33,7 @@
         <div class="seed-detail-form panel__body">
           <% if @seed.has_parameters? %>
             <div class="panel__title">Parameters</div>
-            <%= form_tag create_custom_seede_path(@seed_name), method: :post do %>
+            <%= form_tag create_custom_seede_path(@seed_name), method: :post, multipart: true do %>
               <% @seed.parameter_names.each do |param_name| %>
                 <% param_info = @seed.parameter_info(param_name) %>
                 <div class="form-group">
@@ -52,6 +52,8 @@
                     <%= select_tag "attributes[#{param_name}]", options_for_select([['Select...', ''], ['Yes', 'true'], ['No', 'false']], param_info[:default]&.to_s), class: "form-control" %>
                   <% when :integer %>
                     <%= number_field_tag "attributes[#{param_name}]", param_info[:default], class: "form-control", min: param_info[:min], max: param_info[:max], placeholder: "Enter value" %>
+                  <% when :file %>
+                    <%= file_field_tag "attributes[#{param_name}]", class: "form-control" %>
                   <% else %>
                     <%= text_field_tag "attributes[#{param_name}]", param_info[:default], class: "form-control", placeholder: "Enter #{param_name.to_s.humanize.downcase}" %>
                   <% end %>

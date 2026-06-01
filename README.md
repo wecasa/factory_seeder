@@ -162,6 +162,7 @@ end
 - **Symbol**: `.symbol_param(:status, allowed_values: [:active, :inactive])`
 - **String**: `.string_param(:name, allowed_values: ['admin', 'user'])`
 - **Array**: `.array_param(:items, default: [])`
+- **File**: `.parameter(:avatar, type: :file)`
 
 #### Running Custom Seeds
 
