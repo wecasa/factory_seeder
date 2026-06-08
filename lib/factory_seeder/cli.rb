@@ -157,7 +157,125 @@ module FactorySeeder
       run_specific_seed(seed_name)
     end
 
+    desc 'custom_seeds [SEED_NAME]', 'Run custom seeds defined in db/factory_seeds/'
+    option :list, type: :boolean, default: false, desc: 'List all available custom seeds'
+    option :info, type: :boolean, default: false, desc: 'Show seed details without running it'
+    option :params, type: :hash, default: {}, desc: 'Seed parameters (key:value), cast using the seed definition'
+    def custom_seeds(seed_name = nil)
+      ensure_custom_seeds_loaded
+
+      if options[:list] || seed_name.nil?
+        list_custom_seeds
+        return
+      end
+
+      seed = FactorySeeder.find_custom_seed(seed_name)
+      unless seed
+        puts "❌ Custom seed '#{seed_name}' not found"
+        puts "💡 Available seeds: #{FactorySeeder.seed_manager.list_names.join(', ')}"
+        return
+      end
+
+      if options[:info]
+        print_custom_seed_info(seed)
+        return
+      end
+
+      run_custom_seed(seed)
+    end
+
     private
+
+    def ensure_custom_seeds_loaded
+      CustomSeedLoader.reload! if FactorySeeder.seed_manager.empty?
+    end
+
+    def list_custom_seeds
+      seeds = FactorySeeder.list_custom_seeds
+
+      if seeds.empty?
+        puts '❌ No custom seeds found in db/factory_seeds/'
+        puts '💡 Define seeds using FactorySeeder.define_seed :name do |params| ... end'
+        return
+      end
+
+      puts "🌱 Available custom seeds:\n\n"
+      seeds.each do |seed|
+        puts "  • #{seed.name} — #{seed.description}"
+        seed.parameters.each do |param_name, info|
+          puts "      #{format_parameter(param_name, info)}"
+        end
+      end
+
+      puts "\n💡 Run: factory_seeder custom_seeds SEED_NAME --params key:value"
+      puts '💡 Details: factory_seeder custom_seeds SEED_NAME --info'
+    end
+
+    def print_custom_seed_info(seed)
+      puts "🌱 #{seed.name}"
+      puts "   #{seed.description}"
+
+      if seed.has_parameters?
+        puts "\n   Parameters:"
+        seed.parameters.each do |param_name, info|
+          puts "     #{format_parameter(param_name, info)}"
+        end
+      else
+        puts "\n   No parameters"
+      end
+
+      puts "\n💡 Run: factory_seeder custom_seeds #{seed.name} --params key:value"
+    end
+
+    def run_custom_seed(seed)
+      kwargs = cast_seed_params(seed, options[:params])
+
+      puts "🌱 Running custom seed: #{seed.name}"
+      puts "   Params: #{kwargs}" if kwargs.any?
+
+      result = FactorySeeder.run_custom_seed(seed.name, **kwargs)
+
+      print_custom_seed_logs(result[:logs])
+
+      if result[:success]
+        puts "✅ #{result[:message]}"
+      else
+        puts "❌ #{result[:message]}"
+        exit 1
+      end
+    end
+
+    def cast_seed_params(seed, raw_params)
+      raw_params.each_with_object({}) do |(key, value), kwargs|
+        param_info = seed.parameter_info(key)
+        kwargs[key.to_sym] = cast_seed_param_value(value, param_info)
+      end
+    end
+
+    def cast_seed_param_value(value, param_info)
+      case param_info&.dig(:type)
+      when :integer then value.to_i
+      when :boolean then %w[true 1 yes on].include?(value.to_s.downcase)
+      when :symbol then value.to_sym
+      when :array then value.split(',').map(&:strip)
+      else value
+      end
+    end
+
+    def print_custom_seed_logs(logs)
+      Array(logs).each do |log|
+        icon = { 'success' => '✅', 'warning' => '⚠️ ', 'error' => '❌' }.fetch(log['level'], '  ')
+        puts "  #{icon} #{log['message']}"
+      end
+    end
+
+    def format_parameter(param_name, info)
+      details = [info[:type]]
+      details << 'required' if info[:required]
+      details << "default: #{info[:default]}" unless info[:default].nil?
+      details << "allowed: #{info[:allowed_values].join('|')}" if info[:allowed_values]
+      "#{param_name} (#{details.join(', ')})#{" — #{info[:description]}" if info[:description]}"
+    end
 
     def list_available_seeds
       # Créer un générateur temporaire pour lister les seeds
