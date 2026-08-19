@@ -1,97 +1,97 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Exemple simple pour tester les nouvelles classes sans dépendances externes
+# Simple example to test the new classes without external dependencies
 
-# Charger seulement les classes nécessaires
+# Load only the required classes
 require_relative 'lib/factory_seeder/seed'
 require_relative 'lib/factory_seeder/seed_builder'
 require_relative 'lib/factory_seeder/seed_manager'
 
-puts '🌱 Test des nouvelles classes de Seeds Personnalisés'
+puts '🌱 Testing the new Custom Seeds classes'
 puts '=' * 60
 
-# 1. Test du SeedBuilder
-puts "\n1. Test du SeedBuilder:"
+# 1. SeedBuilder test
+puts "\n1. SeedBuilder test:"
 builder = FactorySeeder::SeedBuilder.new(:test_seed)
 builder
-  .description('Un seed de test')
-  .integer_param(:count, required: true, min: 1, max: 10, description: "Nombre d'éléments")
-  .boolean_param(:enabled, required: false, default: true, description: 'Activer le seed')
+  .description('A test seed')
+  .integer_param(:count, required: true, min: 1, max: 10, description: 'Number of items')
+  .boolean_param(:enabled, required: false, default: true, description: 'Enable the seed')
 
 seed = builder.build do |count:, enabled: true|
-  puts "Exécution du seed avec count=#{count}, enabled=#{enabled}"
-  'Résultat du seed'
+  puts "Running the seed with count=#{count}, enabled=#{enabled}"
+  'Seed result'
 end
 
-puts "✅ Seed créé: #{seed.name}"
+puts "✅ Seed created: #{seed.name}"
 puts "   Description: #{seed.description}"
-puts "   Paramètres: #{seed.parameter_names.join(', ')}"
+puts "   Parameters: #{seed.parameter_names.join(', ')}"
 
-# 2. Test du SeedManager
-puts "\n2. Test du SeedManager:"
+# 2. SeedManager test
+puts "\n2. SeedManager test:"
 manager = FactorySeeder::SeedManager.new
 
-# Enregistrer le seed
+# Register the seed
 manager.register(seed)
-puts '✅ Seed enregistré dans le manager'
+puts '✅ Seed registered in the manager'
 
-# Tester la validation
-puts "\n3. Test de validation:"
+# Test the validation
+puts "\n3. Validation test:"
 begin
-  # Test avec paramètres valides
+  # Test with valid parameters
   result = manager.run(:test_seed, count: 5, enabled: true)
-  puts "✅ Exécution réussie: #{result[:message]}"
+  puts "✅ Run succeeded: #{result[:message]}"
 rescue StandardError => e
-  puts "❌ Erreur: #{e.message}"
+  puts "❌ Error: #{e.message}"
 end
 
 begin
-  # Test avec paramètres invalides
+  # Test with invalid parameters
   result = manager.run(:test_seed, count: 15, enabled: true) # count > max
-  puts "✅ Exécution réussie: #{result[:message]}"
+  puts "✅ Run succeeded: #{result[:message]}"
 rescue StandardError => e
-  puts "❌ Erreur attendue: #{e.message}"
+  puts "❌ Expected error: #{e.message}"
 end
 
-# 3. Test de validation sans exécution
-puts "\n4. Test de validation sans exécution:"
+# 3. Validation test without execution
+puts "\n4. Validation test without execution:"
 is_valid = manager.validate_seed(:test_seed, count: 3, enabled: false)
-puts "Validation: #{is_valid ? '✅ Valide' : '❌ Invalide'}"
+puts "Validation: #{is_valid ? '✅ Valid' : '❌ Invalid'}"
 
-# 4. Test d'erreur de paramètre manquant
-puts "\n5. Test d'erreur de paramètre manquant:"
+# 4. Missing parameter error test
+puts "\n5. Missing parameter error test:"
 begin
-  result = manager.run(:test_seed, enabled: true) # count manquant
-  puts "✅ Exécution réussie: #{result[:message]}"
+  result = manager.run(:test_seed, enabled: true) # count missing
+  puts "✅ Run succeeded: #{result[:message]}"
 rescue StandardError => e
-  puts "❌ Erreur attendue: #{e.message}"
+  puts "❌ Expected error: #{e.message}"
 end
 
-# 5. Test d'erreur de type incorrect
-puts "\n6. Test d'erreur de type incorrect:"
+# 5. Wrong type error test
+puts "\n6. Wrong type error test:"
 begin
-  result = manager.run(:test_seed, count: 'abc', enabled: true) # count doit être un entier
-  puts "✅ Exécution réussie: #{result[:message]}"
+  result = manager.run(:test_seed, count: 'abc', enabled: true) # count must be an integer
+  puts "✅ Run succeeded: #{result[:message]}"
 rescue StandardError => e
-  puts "❌ Erreur attendue: #{e.message}"
+  puts "❌ Expected error: #{e.message}"
 end
 
-# 6. Liste des seeds
-puts "\n7. Seeds disponibles:"
+# 6. Seed list
+puts "\n7. Available seeds:"
 seeds = manager.list
 seeds.each do |s|
   puts "  🌱 #{s.name}: #{s.description}"
-  puts "    📋 Paramètres: #{s.parameter_names.join(', ')}"
+  puts "    📋 Parameters: #{s.parameter_names.join(', ')}"
 end
 
-# 7. Test de recherche
-puts "\n8. Test de recherche:"
+# 7. Search test
+puts "\n8. Search test:"
 matching_seeds = manager.search('test')
 matching_seeds.each do |s|
-  puts "  🔍 Trouvé: #{s.name} - #{s.description}"
+  puts "  🔍 Found: #{s.name} - #{s.description}"
 end
 
 puts "\n#{'=' * 60}"
-puts '🎉 Tests terminés avec succès !'
-puts '📖 Les nouvelles classes fonctionnent correctement'
+puts '🎉 Tests completed successfully!'
+puts '📖 The new classes work correctly'

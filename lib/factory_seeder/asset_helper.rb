@@ -3,7 +3,7 @@
 module FactorySeeder
   module AssetHelper
     def self.javascript_path(filename)
-      # Dans une gem, on peut servir les assets directement depuis le dossier app/assets
+      # In a gem, assets can be served straight from the app/assets folder
       File.join(File.dirname(__FILE__), '..', '..', 'app', 'assets', 'javascript', filename)
     end
 

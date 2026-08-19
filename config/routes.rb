@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 FactorySeeder::Engine.routes.draw do
-  # Dashboard principal
+  # Main dashboard
   root 'dashboard#index'
 
-  # Factory details et génération
+  # Factory details and generation
   get '/factory/:name', to: 'factory#show', as: :factory
   get '/factory', to: 'factory#index', as: :factory_index
   post '/factory/:name/generate', to: 'factory#generate', as: :generate_factory

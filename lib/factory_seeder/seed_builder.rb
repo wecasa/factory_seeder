@@ -16,7 +16,7 @@ module FactorySeeder
 
     def parameter(name, type: :string, required: false, default: nil, allowed_values: nil, min: nil, max: nil,
                   description: nil)
-      # Validation des paramètres selon le type
+      # Validate the options against the parameter type
       validate_parameter_options(type, allowed_values: allowed_values, min: min, max: max)
 
       @parameters[name.to_sym] = {
