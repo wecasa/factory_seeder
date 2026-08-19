@@ -58,7 +58,7 @@ puts "\n3. Parameter validation test:"
 begin
   # Test with valid parameters
   result = FactorySeeder.run_custom_seed(:hello_world, name: 'Alice', count: 3)
-  puts "✅ Run succeeded: #{result[:message]}"
+  puts "#{result[:success] ? '✅' : '❌'} #{result[:message]}"
 rescue StandardError => e
   puts "❌ Error: #{e.message}"
 end
@@ -66,7 +66,7 @@ end
 begin
   # Test with invalid parameters (count too high)
   result = FactorySeeder.run_custom_seed(:hello_world, name: 'Bob', count: 10)
-  puts "✅ Run succeeded: #{result[:message]}"
+  puts "#{result[:success] ? '✅' : '❌ expected failure —'} #{result[:message]}"
 rescue StandardError => e
   puts "❌ Expected error: #{e.message}"
 end
@@ -103,7 +103,7 @@ end
 puts "\n7. Missing parameter error test:"
 begin
   result = FactorySeeder.run_custom_seed(:hello_world) # name missing
-  puts "✅ Run succeeded: #{result[:message]}"
+  puts "#{result[:success] ? '✅' : '❌ expected failure —'} #{result[:message]}"
 rescue StandardError => e
   puts "❌ Expected error: #{e.message}"
 end
@@ -112,11 +112,11 @@ end
 puts "\n8. Wrong type error test:"
 begin
   result = FactorySeeder.run_custom_seed(:hello_world, name: 'Charlie', count: 'abc') # count must be an integer
-  puts "✅ Run succeeded: #{result[:message]}"
+  puts "#{result[:success] ? '✅' : '❌ expected failure —'} #{result[:message]}"
 rescue StandardError => e
   puts "❌ Expected error: #{e.message}"
 end
 
 puts "\n#{'=' * 60}"
 puts '🎉 Demonstration completed!'
-puts '📖 See CUSTOM_SEEDS_GUIDE.md for more information'
+puts '📖 See README.md for more information'

@@ -31,6 +31,14 @@ module FactorySeeder
       self
     end
 
+    # Typed shorthands: string_param, integer_param, boolean_param,
+    # symbol_param and array_param all delegate to parameter.
+    %i[string integer boolean symbol array].each do |type|
+      define_method("#{type}_param") do |name, **options|
+        parameter(name, type: type, **options)
+      end
+    end
+
     def metadata(key, value)
       @metadata[key.to_sym] = value
       self
