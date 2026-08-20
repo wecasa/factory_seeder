@@ -1,0 +1,46 @@
+<% records = Array(records) %>
+<% display_limit = local_assigns.fetch(:display_limit, 200) %>
+<% summaries = FactorySeeder::RecordTracker.summarize(records) %>
+<section class="panel records">
+  <div class="console__header">
+    <span>Created Records</span>
+    <span class="factory-card__meta"><%= FactorySeeder::RecordTracker.describe_summaries(summaries) %></span>
+  </div>
+
+  <% if records.any? %>
+    <div class="records__summary">
+      <% summaries.each do |summary| %>
+        <span class="assoc-pill"><%= summary['model'] %> × <%= summary['count'] %></span>
+      <% end %>
+    </div>
+
+    <div class="records__table-wrapper">
+      <table class="records__table">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>ID</th>
+            <th>Label</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% records.first(display_limit).each do |record| %>
+            <tr>
+              <td class="records__model"><%= record['model'] %></td>
+              <td class="records__id"><%= record['id'] || '—' %></td>
+              <td><%= record['label'] || '—' %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if records.size > display_limit %>
+      <p class="records__more">… and <%= records.size - display_limit %> more records</p>
+    <% end %>
+  <% else %>
+    <div class="console-log">
+      <span>No record created yet.</span>
+    </div>
+  <% end %>
+</section>

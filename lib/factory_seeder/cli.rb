@@ -50,7 +50,7 @@ module FactorySeeder
     def preview(factory_name)
       FactorySeeder.configuration.verbose = true
 
-      # Vérifier si la factory existe
+      # Check that the factory exists
       factory_names = FactorySeeder.list_factory_names
       unless factory_names.include?(factory_name)
         puts "❌ Factory '#{factory_name}' not found"
@@ -164,6 +164,8 @@ module FactorySeeder
       else
         puts "❌ Seed '#{seed.name}' failed: #{result[:error]}"
       end
+
+      print_created_records(result[:created_records])
     end
 
     def interactive_generate
@@ -198,7 +200,7 @@ module FactorySeeder
     end
 
     def generate_single_factory(factory_name)
-      # Vérifier si la factory existe
+      # Check that the factory exists
       factory_names = FactorySeeder.list_factory_names
       unless factory_names.include?(factory_name)
         puts "❌ Factory '#{factory_name}' not found"
@@ -217,6 +219,32 @@ module FactorySeeder
       puts "Strategy: #{result[:strategy]}"
       puts "Traits: #{traits.join(', ')}" if traits.any?
       puts "Attributes: #{attributes}" if attributes.any?
+
+      print_created_records(result[:created_records])
+    end
+
+    def print_created_records(records)
+      records = Array(records)
+
+      if records.empty?
+        puts '📭 No record created'
+        return
+      end
+
+      puts "\n📊 #{RecordTracker.describe(records)}"
+      RecordTracker.summarize(records).each { |summary| puts "   • #{formatted_summary(summary)}" }
+    end
+
+    def formatted_summary(summary)
+      ids = summary['ids']
+      id_part = ids.any? ? " → ids: #{formatted_ids(ids)}" : ''
+      "#{summary['model']}: #{summary['count']}#{id_part}"
+    end
+
+    def formatted_ids(ids, limit = 20)
+      shown = ids.first(limit).join(', ')
+      remaining = ids.size - limit
+      remaining.positive? ? "#{shown}, … (+#{remaining})" : shown
     end
 
     def parse_attributes(attributes_string)

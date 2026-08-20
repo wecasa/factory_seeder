@@ -37,7 +37,7 @@ module FactorySeeder
       scanner.scan
     end
 
-    # Méthode simplifiée qui ne liste que les noms des factories
+    # Simplified method that only lists the factory names
     def list_factory_names
       FactoryBot.factories.map(&:name).map(&:to_s)
     end
@@ -62,12 +62,17 @@ module FactorySeeder
       seed_manager.run(name, **kwargs)
     end
 
+    EXECUTION_LOGS_KEY = :factory_seeder_execution_logs
+
+    # Thread-local, not fiber-local: RecordTracker stores its entries the same
+    # way, so records created inside a fiber keep their log lines.
     def execution_logs
-      Thread.current[:factory_seeder_execution_logs] ||= []
+      Thread.current.thread_variable_get(EXECUTION_LOGS_KEY) ||
+        Thread.current.thread_variable_set(EXECUTION_LOGS_KEY, [])
     end
 
     def clear_execution_logs!
-      Thread.current[:factory_seeder_execution_logs] = []
+      Thread.current.thread_variable_set(EXECUTION_LOGS_KEY, [])
     end
 
     def log(message, level: :info, **meta)
@@ -106,7 +111,7 @@ module FactorySeeder
       end
     end
 
-    # Nouvelle méthode pour scanner les factories déjà chargées
+    # Scans the factories that are already loaded
     def scan_loaded_factories
       # Ensure Rails integration is properly set up
       FactorySeeder::RailsIntegration.setup
@@ -187,6 +192,7 @@ end
 
 require_relative 'factory_seeder/loader'
 FactorySeeder::Loader.setup
+require_relative 'factory_seeder/record_tracker'
 
 # Load Rails Engine only when Rails is available
 require_relative 'factory_seeder/engine' if defined?(Rails::Engine)

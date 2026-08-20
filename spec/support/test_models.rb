@@ -60,10 +60,68 @@ module TestModels
     end
   end
 
-  MODELS = [Author, Article, Blog].freeze
+  # Its label accessor raises, which used to escape the after(:create) callback.
+  class Hostile < Base
+    def name
+      raise 'label exploded'
+    end
+  end
+
+  # Never persists, so it must never be reported as created.
+  class Ghost < Base
+    def save!
+      self
+    end
+  end
+
+  # `name` is an association: reading it would hit the database, so the label
+  # must come from `title` instead and `name` must never be called.
+  class WithAssociation < Base
+    class << self
+      attr_accessor :association_reads
+
+      def reflect_on_all_associations
+        [Reflection.new(:name, :belongs_to)]
+      end
+    end
+
+    def name
+      self.class.association_reads = (self.class.association_reads || 0) + 1
+      'association-loaded'
+    end
+
+    def title
+      'safe-title'
+    end
+  end
+
+  # A value object: no save! at all, so a build run can never persist it.
+  class Value < Base
+    attr_accessor :name
+
+    undef_method :save!
+  end
+
+  # Labels that are not scalars, or blank, must be skipped.
+  class OddLabels < Base
+    def name
+      '   '
+    end
+
+    def title
+      { not: 'a scalar' }
+    end
+
+    def label
+      'usable-label'
+    end
+  end
+
+  MODELS = [Author, Article, Blog, Hostile, Ghost, Value, WithAssociation, OddLabels].freeze
 
   def self.reset!
     MODELS.each { |klass| klass.sequence = 0 }
+    WithAssociation.association_reads = 0
   end
 
   module Helpers

@@ -49,8 +49,11 @@ module FactorySeeder
       FactorySeeder.clear_execution_logs!
       FactorySeeder.log_info("Running custom seed '#{name}'", kwargs: kwargs)
 
+      created_records = []
+
       begin
-        result = seed.call(**kwargs)
+        result = RecordTracker.capture(created_records) { seed.call(**kwargs) }
+        RecordTracker.log_summary(created_records)
         FactorySeeder.log_success("Seed '#{name}' completed", result: result)
         logs = FactorySeeder.normalized_logs(FactorySeeder.execution_logs)
         FactorySeeder.clear_execution_logs!
@@ -58,10 +61,13 @@ module FactorySeeder
           success: true,
           seed_name: name,
           result: result,
-          message: "Seed '#{name}' executed successfully",
+          created_records: created_records,
+          records_summary: RecordTracker.summarize(created_records),
+          message: "Seed '#{name}' executed successfully — #{RecordTracker.describe(created_records)}",
           logs: logs
         }
       rescue StandardError => e
+        RecordTracker.log_summary(created_records)
         FactorySeeder.log("Seed '#{name}' failed: #{e.message}", level: :error)
         logs = FactorySeeder.normalized_logs(FactorySeeder.execution_logs)
         FactorySeeder.clear_execution_logs!
@@ -69,7 +75,9 @@ module FactorySeeder
           success: false,
           seed_name: name,
           error: e.message,
-          message: "Seed '#{name}' failed: #{e.message}",
+          created_records: created_records,
+          records_summary: RecordTracker.summarize(created_records),
+          message: "Seed '#{name}' failed: #{e.message} (#{RecordTracker.describe(created_records)} before failure)",
           logs: logs
         }
       end

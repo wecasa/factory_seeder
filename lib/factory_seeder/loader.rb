@@ -12,6 +12,7 @@ module FactorySeeder
         @loader.inflector.inflect('cli' => 'CLI')
         @loader.push_dir(File.expand_path(__dir__), namespace: FactorySeeder)
         @loader.ignore("#{__dir__}/version.rb")
+        @loader.ignore("#{__dir__}/record_tracker.rb")
         @loader.enable_reloading
         @loader.setup
       end

@@ -25,5 +25,6 @@ RSpec.configure do |config|
     FactorySeeder.instance_variable_set(:@configuration, nil)
     FactorySeeder.instance_variable_set(:@seed_manager, nil)
     FactorySeeder.clear_execution_logs!
+    FactorySeeder::ExecutionLogStore.clear
   end
 end
