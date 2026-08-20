@@ -22,6 +22,10 @@ module FactorySeeder
       seed
     end
 
+    def remove(name)
+      @seeds.delete(name.to_sym)
+    end
+
     def find(name)
       @seeds[name.to_sym]
     end
@@ -69,22 +73,6 @@ module FactorySeeder
           logs: logs
         }
       end
-    end
-
-    def run_all(**global_kwargs)
-      results = []
-
-      @seeds.each_key do |name|
-        result = run(name, **global_kwargs)
-        results << result
-      end
-
-      {
-        total_seeds: @seeds.count,
-        successful: results.count { |r| r[:success] },
-        failed: results.count { |r| !r[:success] },
-        results: results
-      }
     end
 
     def validate_seed(name, **kwargs)

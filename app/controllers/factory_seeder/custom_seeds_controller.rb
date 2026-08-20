@@ -77,58 +77,13 @@ module FactorySeeder
     private
 
     def safe_attributes_params
-      if params.key?(:attributes)
-        # Convert string values to appropriate types based on seed parameter definitions
-        raw_attributes = params.require(:attributes).permit!
-        seed = FactorySeeder.find_custom_seed(params[:name])
+      return {} unless params.key?(:attributes)
 
-        if seed
-          convert_attributes_to_types(raw_attributes, seed)
-        else
-          raw_attributes.transform_keys(&:to_sym)
-        end
-      else
-        {}
-      end
-    end
+      raw_attributes = params.require(:attributes).permit!.to_h
+      seed = FactorySeeder.find_custom_seed(params[:name])
+      return raw_attributes.transform_keys(&:to_sym) unless seed
 
-    def convert_attributes_to_types(raw_attributes, seed)
-      converted = {}
-
-      raw_attributes.each do |key, value|
-        param_info = seed.parameter_info(key)
-        converted[key.to_sym] = convert_value_to_type(value, param_info)
-      end
-
-      converted
-    end
-
-    def convert_value_to_type(value, param_info)
-      return value if value.blank?
-
-      case param_info&.dig(:type)
-      when :integer
-        value.to_i
-      when :boolean
-        case value.to_s.downcase
-        when 'true', '1', 'yes', 'on'
-          true
-        when 'false', '0', 'no', 'off'
-          false
-        else
-          value
-        end
-      when :symbol
-        value.to_sym
-      when :array
-        if value.is_a?(String)
-          value.split(',').map(&:strip)
-        else
-          value
-        end
-      else
-        value
-      end
+      seed.coerce_parameters(raw_attributes)
     end
   end
 end

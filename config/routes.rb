@@ -9,10 +9,6 @@ FactorySeeder::Engine.routes.draw do
   get '/factory', to: 'factory#index', as: :factory_index
   post '/factory/:name/generate', to: 'factory#generate', as: :generate_factory
 
-  # Seeds actions
-  post '/seeds/:name', to: 'dashboard#run_seed', as: :run_seed
-  post '/seeds', to: 'dashboard#run_all_seeds', as: :run_all_seeds
-
   # Custom seeds
   get '/custom_seeds', to: 'custom_seeds#index', as: :custom_seeds
   get '/custom_seeds/:name', to: 'custom_seeds#show', as: :custom_seed
