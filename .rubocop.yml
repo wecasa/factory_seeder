@@ -1,0 +1,11 @@
+AllCops:
+  NewCops: enable
+  Exclude:
+    - 'vendor/**/*'
+
+# Spec files are naturally long: describe/context blocks hold the examples.
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*_spec.rb'
+    - 'spec/factories/**/*.rb'
+    - '*.gemspec'
