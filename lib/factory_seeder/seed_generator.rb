@@ -4,7 +4,6 @@ module FactorySeeder
   class SeedGenerator
     def initialize
       @generated_records = []
-      @defined_seeds = {}
     end
 
     def preview(factory_name, count = 1, traits = [], attributes = {})
@@ -144,44 +143,14 @@ module FactorySeeder
       summary
     end
 
-    def define_seed(name, &block)
-      @defined_seeds[name.to_sym] = block
-    end
-
-    def run_seed(name)
-      seed_name = name.to_sym
-      unless @defined_seeds.key?(seed_name)
-        raise "Seed '#{name}' not found. Available seeds: #{@defined_seeds.keys.join(', ')}"
-      end
-
-      @defined_seeds[seed_name].call(self)
-    end
-
-    def list_seeds
-      @defined_seeds.keys
-    end
-
-    def has_seed?(name)
-      @defined_seeds.key?(name.to_sym)
-    end
-
-    def run_all_seeds
-      puts '🌱 Running all defined seeds...'
-      @defined_seeds.each do |name, block|
-        puts "\n--- Running seed: #{name} ---"
-        block.call(self)
-      end
-      puts "\n✅ All seeds completed successfully"
-    end
-
     private
 
     def filter_association_attributes(factory_name, attributes)
       return attributes if attributes.empty?
 
       begin
-        # Get the factory
-        factory = FactoryBot.factories.find { |f| f.name.to_s == factory_name.to_s }
+        # Registry#find takes a name, not a block
+        factory = FactoryBot.factories.find(factory_name.to_sym)
         return attributes unless factory
 
         # Get associations from factory definition

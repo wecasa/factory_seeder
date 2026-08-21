@@ -30,6 +30,26 @@ module FactorySeeder
       @parameters[name.to_sym]
     end
 
+    # Casts raw string input (CLI flags, web form fields) to the types
+    # declared for each parameter. Unknown keys are passed through untouched.
+    def coerce_parameters(raw_parameters)
+      raw_parameters.each_with_object({}) do |(key, value), coerced|
+        coerced[key.to_sym] = coerce_parameter(key, value)
+      end
+    end
+
+    def coerce_parameter(key, value)
+      return value if value.nil? || value.to_s.empty?
+
+      case parameter_info(key)&.dig(:type)
+      when :integer then value.to_i
+      when :boolean then coerce_boolean(value)
+      when :symbol then value.to_sym
+      when :array then value.is_a?(String) ? value.split(',').map(&:strip) : value
+      else value
+      end
+    end
+
     def validate_parameters!(kwargs)
       # Check for required parameters
       required_params = @parameters.select { |_, info| info[:required] }.keys
@@ -63,6 +83,14 @@ module FactorySeeder
     end
 
     private
+
+    def coerce_boolean(value)
+      case value.to_s.downcase
+      when 'true', '1', 'yes', 'on' then true
+      when 'false', '0', 'no', 'off' then false
+      else value
+      end
+    end
 
     def validate_parameter_type!(key, value, param_info)
       expected_type = param_info[:type]

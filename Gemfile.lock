@@ -4,8 +4,6 @@ PATH
     factory_seeder (0.1.0)
       activesupport (>= 6.0, < 9.0)
       factory_bot (>= 5.0, < 7.0)
-      sinatra (>= 2.0, < 5.0)
-      sinatra-contrib (>= 2.0, < 5.0)
       thor (>= 1.0, < 3.0)
       zeitwerk (>= 2.5, < 3.0)
 
@@ -44,9 +42,6 @@ GEM
     logger (1.7.0)
     method_source (1.1.0)
     minitest (5.25.5)
-    multi_json (1.17.0)
-    mustermann (2.0.2)
-      ruby2_keywords (~> 0.0.1)
     parallel (1.27.0)
     parser (3.3.9.0)
       ast (~> 2.4.1)
@@ -56,9 +51,6 @@ GEM
       coderay (~> 1.1)
       method_source (~> 1.0)
     racc (1.8.1)
-    rack (2.2.17)
-    rack-protection (2.2.4)
-      rack
     rainbow (3.1.1)
     rake (13.3.0)
     regexp_parser (2.11.2)
@@ -90,28 +82,14 @@ GEM
       parser (>= 3.3.7.2)
       prism (~> 1.4)
     ruby-progressbar (1.13.0)
-    ruby2_keywords (0.0.5)
     securerandom (0.4.1)
-    sinatra (2.2.4)
-      mustermann (~> 2.0)
-      rack (~> 2.2)
-      rack-protection (= 2.2.4)
-      tilt (~> 2.0)
-    sinatra-contrib (2.2.4)
-      multi_json
-      mustermann (~> 2.0)
-      rack-protection (= 2.2.4)
-      sinatra (= 2.2.4)
-      tilt (~> 2.0)
     thor (1.4.0)
-    tilt (2.6.1)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (3.1.5)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
     uri (1.1.1)
-    webrick (1.9.1)
     zeitwerk (2.8.3)
 
 PLATFORMS
@@ -124,7 +102,6 @@ DEPENDENCIES
   rake (~> 13.0)
   rspec (~> 3.0)
   rubocop (~> 1.0)
-  webrick (~> 1.7)
 
 BUNDLED WITH
    2.5.14

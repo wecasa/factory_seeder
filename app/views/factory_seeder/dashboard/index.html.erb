@@ -43,7 +43,7 @@
         <div class="stat-card__label">Loaded Factories</div>
       </div>
       <div class="stat-card">
-        <div class="stat-card__value"><%= @seeds_info.count %></div>
+        <div class="stat-card__value"><%= @seeds.count %></div>
         <div class="stat-card__label">Custom Seeds</div>
       </div>
       <div class="stat-card">
@@ -86,8 +86,8 @@
           and retry actions are available from the execution screen.
         </p>
         <div class="mode-card__tags">
-          <% @seeds_info.each_key.take(3).each do |seed| %>
-            <span class="mode-card__tag"><%= seed.to_s.humanize %></span>
+          <% @seeds.take(3).each do |seed| %>
+            <span class="mode-card__tag"><%= seed.name.to_s.humanize %></span>
           <% end %>
         </div>
         <div class="mode-card__actions">

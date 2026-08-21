@@ -4,6 +4,7 @@
 require 'factory_bot'
 require 'json'
 require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/object/blank'
 
 require_relative 'factory_seeder/version'
 
@@ -41,26 +42,12 @@ module FactorySeeder
       FactoryBot.factories.map(&:name).map(&:to_s)
     end
 
-    def seeder
-      @seeder ||= Seeder.new
-    end
-
     def seed_manager
       @seed_manager ||= SeedManager.new
     end
 
-    def generate
-      yield(seeder) if block_given?
-      seeder
-    end
-
     def define_seed(name, builder_block = nil, &execution_block)
       seed_manager.define(name, builder_block, &execution_block)
-    end
-
-    def list_seeds
-      # Keep backward compatibility with old seeder
-      seeder.seeds
     end
 
     def list_custom_seeds
@@ -117,10 +104,6 @@ module FactorySeeder
           'meta' => log_entry[:meta] || {}
         }
       end
-    end
-
-    def run(*names)
-      seeder.run(*names)
     end
 
     # Nouvelle méthode pour scanner les factories déjà chargées

@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require 'tmpdir'
+require 'fileutils'
+require 'stringio'
+
 require 'factory_seeder'
 
 Dir[File.expand_path('support/**/*.rb', __dir__)].sort.each { |file| require file }
@@ -12,7 +16,12 @@ RSpec.configure do |config|
   config.order = :random
   Kernel.srand config.seed
 
+  config.include TestModels::Helpers
+  config.include CaptureOutput
+
   config.before do
+    TestModels.reset!
+    TestFactories.define!
     FactorySeeder.instance_variable_set(:@configuration, nil)
     FactorySeeder.instance_variable_set(:@seed_manager, nil)
     FactorySeeder.clear_execution_logs!

@@ -1,84 +1,33 @@
 # frozen_string_literal: true
 
-# FactorySeeder Template
-# This template shows common patterns for seeding your database
+# FactorySeeder seed template
+# Drop files like this one under db/factory_seeds/ -- they are loaded
+# automatically by the CLI and by the Rails engine.
 
-FactorySeeder.generate do |seeder|
-  # ========================================
-  # BASIC SEEDING
-  # ========================================
+# A seed without parameters.
+FactorySeeder.define_seed(:sample_users) do
+  FactoryBot.create_list(:user, 10)
+end
 
-  # Create users with different traits
-  seeder.create(:user, count: 10, traits: [:admin])
-  seeder.create(:user, count: 50, traits: [:vip])
-  seeder.create(:user, count: 100) # regular users
+# A seed with typed, validated parameters. They show up as a form in the web UI
+# and can be passed on the command line:
+#
+#   factory_seeder seeds sample_posts --params count:5 published:true
+FactorySeeder.define_seed(:sample_posts, lambda { |builder|
+  builder
+    .description('Create posts for an existing author')
+    .integer_param(:count, required: true, min: 1, max: 100, description: 'How many posts')
+    .boolean_param(:published, required: false, default: false, description: 'Publish them')
+    .symbol_param(:locale, required: false, default: :fr,
+                  allowed_values: %i[fr en es], description: 'Post locale')
+    .array_param(:tags, required: false, default: %w[ruby rails], description: 'Tags to apply')
+}) do |count:, published: false, locale: :fr, tags: %w[ruby rails]|
+  author = FactoryBot.create(:user)
 
-  # Create posts with associations
-  seeder.create_with_associations(:post, count: 25, associations: {
-                                    author: { factory: :user, count: 1 }
-                                  })
-
-  # ========================================
-  # COMPLEX ASSOCIATIONS
-  # ========================================
-
-  # Create orders with multiple associations
-  seeder.create_with_associations(:order, count: 10, associations: {
-                                    customer: { factory: :user, traits: [:vip] },
-                                    items: { factory: :product, count: 3 }
-                                  })
-
-  # Create blog posts with comments
-  seeder.create_with_associations(:blog_post, count: 15, associations: {
-                                    author: { factory: :user, traits: [:admin] },
-                                    comments: { factory: :comment, count: 5 }
-                                  })
-
-  # ========================================
-  # CUSTOM ATTRIBUTES
-  # ========================================
-
-  # Override default attributes
-  seeder.create(:user, count: 5, attributes: {
-                  email: 'custom@example.com',
-                  role: 'moderator'
-                })
-
-  # ========================================
-  # DIFFERENT STRATEGIES
-  # ========================================
-
-  # Build records without saving (useful for testing)
-  seeder.create(:user, count: 3, strategy: :build, traits: [:admin])
-
-  # ========================================
-  # ENVIRONMENT-SPECIFIC SEEDING
-  # ========================================
-
-  if Rails.env.development?
-    # Development-specific seeds
-    seeder.create(:user, count: 100, traits: [:admin])
-    seeder.create(:post, count: 500)
-  elsif Rails.env.test?
-    # Test-specific seeds (minimal data)
-    seeder.create(:user, count: 5)
-    seeder.create(:post, count: 10)
+  count.times do
+    FactoryBot.create(:post, author: author, published: published, locale: locale, tags: tags)
   end
 end
 
-# ========================================
-# ALTERNATIVE APPROACHES
-# ========================================
-
-# You can also use the direct API
-generator = FactorySeeder::SeedGenerator.new
-
-# Create records one by one
-generator.create(:user, count: 1, traits: [:admin])
-generator.create(:post, count: 5, traits: [:published])
-
-# Preview data before creating
-generator.preview(:user, %i[admin vip])
-
-# Get a summary of what was created
-generator.summary
+# Every record FactoryBot persists inside a seed -- associations included -- is
+# reported back by the CLI, the web UI and the execution log. Nothing to declare.
