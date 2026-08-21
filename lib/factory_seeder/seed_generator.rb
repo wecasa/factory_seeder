@@ -61,50 +61,56 @@ module FactorySeeder
 
       generated_count = 0
       errors = []
+      created_records = []
 
-      count.times do |i|
-        begin
-          if strategy == 'create'
-            record = FactoryBot.create(factory_name, *traits, filtered_attributes)
-          else
-            record = FactoryBot.build(factory_name, *traits, filtered_attributes)
-            record.save! if record.respond_to?(:save!)
-          end
-        rescue NoMethodError => e
-          # Check if this is the specific error about calling a method on CollectionProxy
-          raise unless e.message.include?('CollectionProxy') && e.message.include?('undefined method')
+      RecordTracker.capture(created_records) do
+        count.times do |i|
+          begin
+            if strategy == 'create'
+              record = FactoryBot.create(factory_name, *traits, filtered_attributes)
+            else
+              record = FactoryBot.build(factory_name, *traits, filtered_attributes)
+              if record.respond_to?(:save!)
+                record.save!
+                RecordTracker.track(record)
+              end
+            end
+          rescue NoMethodError => e
+            # Check if this is the specific error about calling a method on CollectionProxy
+            raise unless e.message.include?('CollectionProxy') && e.message.include?('undefined method')
 
-          method_name = e.message.match(/undefined method `(\w+)'/)&.[](1)
-          # Try to identify which attribute might be causing the issue
-          problematic_attrs = attributes.select { |k, v| v.to_s == method_name || k.to_s == method_name }
-          if problematic_attrs.any?
-            raise NoMethodError,
-                  "#{e.message}. This might be caused by passing '#{problematic_attrs.keys.first}' as an attribute. Collection associations (has_many, has_and_belongs_to_many) cannot be set directly via attributes."
-          else
-            raise NoMethodError,
-                  "#{e.message}. This might be caused by an attribute that matches an association name. Try removing association-related attributes from your attributes hash."
+            method_name = e.message.match(/undefined method `(\w+)'/)&.[](1)
+            # Try to identify which attribute might be causing the issue
+            problematic_attrs = attributes.select { |k, v| v.to_s == method_name || k.to_s == method_name }
+            if problematic_attrs.any?
+              raise NoMethodError,
+                    "#{e.message}. This might be caused by passing '#{problematic_attrs.keys.first}' as an attribute. Collection associations (has_many, has_and_belongs_to_many) cannot be set directly via attributes."
+            else
+              raise NoMethodError,
+                    "#{e.message}. This might be caused by an attribute that matches an association name. Try removing association-related attributes from your attributes hash."
+            end
           end
+
+          @generated_records << {
+            factory: factory_name,
+            record: record,
+            traits: traits,
+            attributes: attributes,
+            strategy: strategy
+          }
+
+          generated_count += 1
+
+          puts "✅ Generated #{RecordTracker.format_entry(RecordTracker.entry_for(record))}" if FactorySeeder.configuration.verbose
+        rescue StandardError => e
+          error_msg = "Failed to generate #{factory_name} ##{i + 1}: #{e.message}"
+          errors << error_msg
+          FactorySeeder.log(error_msg, level: :error)
+          puts "❌ #{error_msg}" if FactorySeeder.configuration.verbose
         end
-
-        @generated_records << {
-          factory: factory_name,
-          record: record,
-          traits: traits,
-          attributes: attributes,
-          strategy: strategy
-        }
-
-        generated_count += 1
-
-        FactorySeeder.log("✅ Generated #{factory_name} ##{i + 1}", level: :success)
-        puts "✅ Generated #{factory_name} ##{i + 1}" if FactorySeeder.configuration.verbose
-      rescue StandardError => e
-        error_msg = "Failed to generate #{factory_name} ##{i + 1}: #{e.message}"
-        errors << error_msg
-        FactorySeeder.log(error_msg, level: :error)
-        puts "❌ #{error_msg}" if FactorySeeder.configuration.verbose
       end
 
+      RecordTracker.log_summary(created_records)
       FactorySeeder.log_info('Completed generation', generated_count: generated_count, errors: errors.count)
       logs = FactorySeeder.normalized_logs(FactorySeeder.execution_logs)
       FactorySeeder.clear_execution_logs!
@@ -118,6 +124,8 @@ module FactorySeeder
         attributes: attributes,
         strategy: strategy,
         errors: errors,
+        created_records: created_records,
+        records_summary: RecordTracker.summarize(created_records),
         logs: logs
       }
     end

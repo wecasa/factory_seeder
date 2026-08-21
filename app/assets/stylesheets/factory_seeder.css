@@ -623,6 +623,68 @@ body {
   margin-top: 1rem;
 }
 
+.records {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.records__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.records__table-wrapper {
+  max-height: 22rem;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.records__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.records__table th,
+.records__table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.records__table th {
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.7rem;
+}
+
+.records__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.records__model {
+  color: var(--primary);
+}
+
+.records__id {
+  color: var(--success);
+}
+
+.records__more {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 @media (max-width: 768px) {
   .page-content {
     padding: 1.5rem;

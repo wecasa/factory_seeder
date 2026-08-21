@@ -11,12 +11,14 @@ module FactorySeeder
       @factories = FactorySeeder.scan_loaded_factories
       @factory = @factories[@factory_name]
       @execution_logs = []
+      @created_records = []
 
       # Retrieve logs from temporary storage if available (PRG pattern)
       if params[:log_id].present?
         stored = ExecutionLogStore.retrieve(params[:log_id])
         if stored
           @execution_logs = stored[:logs] || []
+          @created_records = stored[:records] || []
           flash.now[stored[:flash_type]] = stored[:flash_message] if stored[:flash_type]
         end
       end
@@ -36,14 +38,11 @@ module FactorySeeder
         generator = SeedGenerator.new
         result = generator.generate(factory_name, count, traits, generate_params[:attributes].to_h.compact_blank)
         logs = result[:logs] || []
+        records = result[:created_records] || []
 
-        if result[:errors].any?
-          log_id = ExecutionLogStore.store(logs, flash_type: :error,
-                                                 flash_message: "Error generating seeds: #{result[:errors].join(', ')}")
-        else
-          log_id = ExecutionLogStore.store(logs, flash_type: :success,
-                                                 flash_message: "Successfully generated #{result[:count]} #{factory_name} records")
-        end
+        flash_type, flash_message = generation_flash(result, factory_name, records)
+        log_id = ExecutionLogStore.store(logs, records: records, flash_type: flash_type,
+                                               flash_message: flash_message)
       rescue StandardError => e
         log_id = ExecutionLogStore.store([], flash_type: :error, flash_message: "Error generating seeds: #{e.message}")
       end
@@ -52,6 +51,12 @@ module FactorySeeder
     end
 
     private
+
+    def generation_flash(result, factory_name, records)
+      return [:error, "Error generating seeds: #{result[:errors].join(', ')}"] if result[:errors].any?
+
+      [:success, "Generated #{result[:count]} #{factory_name} — #{RecordTracker.describe(records)}"]
+    end
 
     def parse_traits(traits_param)
       return [] if traits_param.blank?

@@ -37,10 +37,32 @@ RSpec.describe FactorySeeder::CLI do
   end
 
   describe 'generate' do
-    it 'creates the requested number of records' do
+    it 'reports the created records grouped by model with their ids' do
       output = run('generate', 'fs_author', '--count=2')
 
       expect(output).to include('Generated 2 fs_author records')
+      expect(output).to include('2 records created (TestModels::Author: 2)')
+      expect(output).to include('TestModels::Author: 2 → ids: 1, 2')
+    end
+
+    it 'reports the records created through associations' do
+      output = run('generate', 'fs_article', '--count=1')
+
+      expect(output).to include('TestModels::Author: 1')
+      expect(output).to include('TestModels::Article: 1')
+    end
+
+    it 'truncates a long id list after twenty ids' do
+      output = run('generate', 'fs_author', '--count=25')
+
+      expect(output).to include('20, … (+5)')
+      expect(output).not_to include('21,')
+    end
+
+    it 'says so when nothing was created' do
+      output = run('generate', 'fs_ghost', '--count=1', '--strategy=build')
+
+      expect(output).to include('No record created')
     end
 
     it 'refuses an unknown factory' do
@@ -113,6 +135,7 @@ RSpec.describe FactorySeeder::CLI do
       output = run('seeds', 'demo')
 
       expect(output).to include("Seed 'demo' executed successfully")
+      expect(output).to include('1 record created (TestModels::Author: 1)')
     end
 
     it 'coerces the parameters it is given' do
@@ -124,7 +147,7 @@ RSpec.describe FactorySeeder::CLI do
 
       output = run('seeds', 'demo', '--params', 'count:3')
 
-      expect(output).to include("Seed 'demo' executed successfully")
+      expect(output).to include('3 records created (TestModels::Author: 3)')
     end
 
     it 'reports a failing seed without raising' do

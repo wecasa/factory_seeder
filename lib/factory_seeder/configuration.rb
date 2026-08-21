@@ -2,13 +2,14 @@
 
 module FactorySeeder
   class Configuration
-    attr_accessor :factory_paths, :default_count, :default_strategy, :environments, :verbose
+    attr_accessor :factory_paths, :default_count, :default_strategy, :environments, :verbose, :log_records_limit
 
     def initialize
       @factory_paths = []
       @default_count = 1
       @default_strategy = :create
       @verbose = false
+      @log_records_limit = 50
       @environments = {
         development: { default_count: 10 },
         test: { default_count: 5 },

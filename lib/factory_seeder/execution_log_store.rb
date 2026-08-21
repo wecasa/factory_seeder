@@ -7,11 +7,12 @@ module FactorySeeder
     EXPIRY_TIME = 300 # 5 minutes
 
     class << self
-      def store(logs, flash_type: nil, flash_message: nil)
+      def store(logs, flash_type: nil, flash_message: nil, records: [])
         cleanup_expired
         id = SecureRandom.hex(8)
         storage[id] = {
           logs: logs,
+          records: records,
           flash_type: flash_type,
           flash_message: flash_message,
           created_at: Time.now

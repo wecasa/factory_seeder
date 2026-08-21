@@ -11,6 +11,11 @@ module TestFactories
         association :author, factory: :fs_author
       end
     },
+    fs_hostile: proc { |f| f.factory(:fs_hostile, class: 'TestModels::Hostile') },
+    fs_ghost: proc { |f| f.factory(:fs_ghost, class: 'TestModels::Ghost') },
+    fs_value: proc { |f| f.factory(:fs_value, class: 'TestModels::Value') { name { 'v' } } },
+    fs_associated: proc { |f| f.factory(:fs_associated, class: 'TestModels::WithAssociation') },
+    fs_odd_labels: proc { |f| f.factory(:fs_odd_labels, class: 'TestModels::OddLabels') },
     fs_blog: proc { |f| f.factory(:fs_blog, class: 'TestModels::Blog') { title { 'Blog' } } },
     fs_traited: proc { |f|
       f.factory(:fs_traited, class: 'TestModels::Author') do

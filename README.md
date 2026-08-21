@@ -7,7 +7,7 @@ A powerful Ruby gem that simplifies database seeding using your existing Factory
 - **Automatic Factory Detection**: Scans your FactoryBot factories automatically
 - **Trait Support**: Use existing traits to create varied data
 - **Association Handling**: Manage complex relationships between models
-- **Web Interface**: Beautiful web UI for visual seeding with Rails Engine integration
+- **Web Interface**: Rails Engine mounting a UI for visual seeding
 - **CLI Interface**: Command-line tool for quick seeding
 - **Custom Seeds System**: Define reusable seeds with parameter validation
 - **Preview Mode**: See what data will be generated before creating it
@@ -40,7 +40,7 @@ bundle exec factory_seeder init
 
 This creates:
 - `config/initializers/factory_seeder.rb` - Configuration file
-- `db/seeds_factory_seeder.rb` - Sample seeds file
+- `db/factory_seeds/example.rb` - Sample seed
 
 ### 2. List Available Factories
 
@@ -90,16 +90,6 @@ Then access the web interface at `http://localhost:3000/factory-seeder`
 - Real-time generation
 - Auto-reload: Custom seeds under `db/factory_seeds/*.rb` are automatically reloaded when the Rails engine prepares a request - no server restart needed
 
-### 5. Standalone Web Interface
-
-For non-Rails projects or standalone usage:
-
-```bash
-bundle exec factory_seeder web --port=4567
-```
-
-The standalone web interface calls `FactorySeeder.reload!` before each request, so file edits take effect immediately.
-
 ## Usage
 
 ### Ruby API
@@ -107,31 +97,23 @@ The standalone web interface calls `FactorySeeder.reload!` before each request, 
 #### Basic Generation
 
 ```ruby
-# In your seeds file
-FactorySeeder.generate do |seeder|
-  # Create 10 users with admin trait
-  seeder.create(:user, count: 10, traits: [:admin])
+generator = FactorySeeder::SeedGenerator.new
 
-  # Create posts with associations
-  seeder.create_with_associations(:post, count: 5, associations: {
-    author: { factory: :user, count: 1 },
-    comments: { factory: :comment, count: 3 }
-  })
+# Create 10 users with the admin trait
+generator.generate(:user, 10, [:admin])
 
-  # Create with custom attributes
-  seeder.create(:user, count: 5, attributes: {
-    email: "custom@example.com",
-    role: "moderator"
-  })
-end
+# Create with custom attributes
+generator.generate(:user, 5, [], { email: "custom@example.com", role: "moderator" })
+
+# Build and save instead of create
+generator.generate(:user, 3, [], {}, 'build')
+
+# See what would be generated, without touching the database
+generator.preview(:user, 2, [:admin])
 ```
 
-#### Different Strategies
-
-```ruby
-# Build instead of create (useful for testing)
-seeder.create(:user, count: 3, strategy: :build)
-```
+Anything more elaborate -- several factories, associations wired by hand,
+conditional logic -- belongs in a custom seed.
 
 ### Custom Seeds System
 
@@ -170,8 +152,44 @@ end
 result = FactorySeeder.run_custom_seed(:create_users, count: 10, admin: true)
 
 # Via web interface - navigate to custom seeds section
-# Via CLI - use the custom seeds commands
+
+# Via CLI (params are coerced using the seed parameter definitions)
+# factory_seeder seeds create_users --params count:10 admin:true
 ```
+
+### Created Records Reporting
+
+Every record persisted through FactoryBot during a run is tracked, including
+the ones created indirectly through associations. The result hash of
+`run_custom_seed`, `SeedManager#run` and `SeedGenerator#generate` carries:
+
+```ruby
+result[:created_records]
+# => [{ "model" => "User", "id" => 42, "label" => "john@example.com" }, ...]
+
+result[:records_summary]
+# => [{ "model" => "User", "count" => 10, "ids" => [42, 43, ...] }]
+```
+
+The same data is surfaced automatically:
+
+- **CLI**: a summary is printed after `generate` and `seeds`, with the model
+  names, counts and created ids.
+- **Rails engine UI**: a `Created Records` panel is rendered next to the
+  execution console on the factory and custom seed pages.
+- **Execution logs**: one `🗃️ Created Model #id (label)` line per record, plus a
+  final `📊` summary line. The number of individual lines is capped by
+  `config.log_records_limit` (default `50`, `nil` for no limit); records beyond
+  the cap are still counted and returned.
+
+Records created before a seed raises are kept, so a failed run still reports
+what it managed to insert.
+
+Tracking is handled by `FactorySeeder::RecordTracker`, which installs a single
+global FactoryBot `after(:create)` callback. Outside of a run the callback is a
+no-op, so a host application's test suite is unaffected. Registration is checked
+against FactoryBot's own callback list on every run, so tracking survives the
+`FactoryBot.reload` that `factory_bot_rails` performs on each code reload.
 
 ### CLI Commands
 
@@ -191,23 +209,17 @@ factory_seeder generate user --count=3 --attributes='{"email":"test@example.com"
 # Preview factory data
 factory_seeder preview user --traits=admin
 
-# Start standalone web interface
-factory_seeder web --port=4567
-
 # Initialize configuration
 factory_seeder init
 
-# List available custom seeds
+# List the seeds declared in db/factory_seeds/
 factory_seeder seeds --list
 
-# Run a specific custom seed
-factory_seeder seeds development
+# Run one
+factory_seeder seeds create_users
 
-# Run all custom seeds
-factory_seeder seeds --all
-
-# Preview what would be generated (dry run)
-factory_seeder seeds development --dry_run
+# Run one with parameters
+factory_seeder seeds create_users --params count:10 admin:true
 ```
 
 ## Configuration
@@ -226,6 +238,9 @@ FactorySeeder.configure do |config|
 
   # Verbose mode
   config.verbose = Rails.env.development?
+
+  # Records logged individually per run (nil = no limit)
+  config.log_records_limit = 50
 
   # Environment-specific settings
   config.environments = {
@@ -324,27 +339,33 @@ end
 ### Environment-Specific Seeds
 
 ```ruby
-FactorySeeder.generate do |seeder|
-  if Rails.env.development?
-    seeder.create(:user, count: 100, traits: [:admin])
-    seeder.create(:post, count: 500)
-  elsif Rails.env.test?
-    seeder.create(:user, count: 5)
-    seeder.create(:post, count: 10)
-  elsif Rails.env.production?
-    seeder.create(:user, count: 1, traits: [:admin])
-  end
+# db/factory_seeds/baseline.rb
+FactorySeeder.define_seed(:baseline) do
+  counts = case Rails.env
+           when 'development' then { users: 100, posts: 500 }
+           when 'test' then { users: 5, posts: 10 }
+           else { users: 1, posts: 0 }
+           end
+
+  FactoryBot.create_list(:user, counts[:users], :admin)
+  FactoryBot.create_list(:post, counts[:posts])
 end
 ```
 
 ### Complex Associations
 
+Wire them with FactoryBot directly -- every record created along the way,
+associations included, still shows up in the report:
+
 ```ruby
-seeder.create_with_associations(:order, count: 10, associations: {
-  customer: { factory: :user, traits: [:vip] },
-  items: { factory: :product, count: 3 },
-  shipping_address: { factory: :address, count: 1 }
-})
+FactorySeeder.define_seed(:orders) do
+  customer = FactoryBot.create(:user, :vip)
+
+  FactoryBot.create_list(:order, 10,
+                         customer: customer,
+                         items: FactoryBot.create_list(:product, 3),
+                         shipping_address: FactoryBot.create(:address))
+end
 ```
 
 ### Using Rails Model Constants
@@ -402,18 +423,16 @@ gem install factory_seeder-0.1.0.gem
 - **SeedManager**: Manages custom seed definitions with parameter validation
 - **Seed & SeedBuilder**: Define reusable seeds with type-safe parameters
 - **CLI**: Command-line interface with interactive prompts
-- **WebInterface**: Sinatra-based web UI for visual seeding
+- **RecordTracker**: Collects the records FactoryBot persists during a run
 - **Engine**: Rails Engine for seamless Rails integration
 - **Configuration**: Flexible configuration system
 
 ### Dependencies
 
 - **Ruby**: >= 2.7.0
-- **FactoryBot**: ~> 6.0
+- **FactoryBot**: >= 6.0, < 7.0
 - **ActiveSupport**: >= 6.0
 - **Thor**: ~> 1.0 (CLI)
-- **Sinatra**: ~> 2.0 (Web interface)
-- **Faker**: ~> 3.0 (Test data generation)
 - **Zeitwerk**: ~> 2.6 (Autoloading)
 
 ## Contributing
@@ -437,7 +456,6 @@ This gem is available as open source under the terms of the [MIT License](https:
 
 - Built on top of [FactoryBot](https://github.com/thoughtbot/factory_bot)
 - CLI powered by [Thor](https://github.com/erikhuda/thor)
-- Web interface built with [Sinatra](https://sinatrarb.com/)
 - Autoloading with [Zeitwerk](https://github.com/fxn/zeitwerk)
 
 ---

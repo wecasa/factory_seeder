@@ -25,7 +25,9 @@ Gem::Specification.new do |spec|
 
   # === Core dependencies (always required) ===
   spec.add_dependency 'activesupport', '>= 6.0', '< 9.0'
-  spec.add_dependency 'factory_bot', '>= 5.0', '< 7.0'
+  # 6.0 is the floor: RecordTracker needs FactoryBot::Internal.callbacks to tell
+  # whether its global callback survived a FactoryBot.reload.
+  spec.add_dependency 'factory_bot', '>= 6.0', '< 7.0'
   spec.add_dependency 'zeitwerk', '>= 2.5', '< 3.0'
 
   # === Optional dependencies (loaded on demand) ===
